@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bachelor Points App Concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&family=Fraunces:opsz,wght@9..144,500..900&family=Barlow+Condensed:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: a design-review wall. Quiet cool-grey shell, each concept gets a text column + a strip of three phones in its own visual world. Boldness lives in the hero "−5". */
+:root{
+  --shell:#E9ECEF;
+  --card:#F8F9FA;
+  --ink:#14161B;
+  --muted:#5A606C;
+  --line:#CDD2D9;
+  --accent:#E8432A;
+  --plus:#1F8A5B;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"Instrument Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--shell);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.02}
+h2{font-size:clamp(30px,4vw,46px);font-variation-settings:"wdth" 118;font-weight:850;letter-spacing:-.02em}
+h3{font-size:20px;font-variation-settings:"wdth" 110;font-weight:750}
+p{margin:0;max-width:62ch}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+section{padding:72px 0;border-top:1px solid var(--line)}
+
+/* ---------- hero ---------- */
+.hero{padding:56px 0 48px;display:grid;grid-template-columns:1.25fr .9fr;gap:48px;align-items:center}
+.hero h1{font-size:clamp(44px,7vw,92px);font-variation-settings:"wdth" 125;font-weight:900;letter-spacing:-.035em;margin:14px 0 22px}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero p{font-size:18px;color:#2C3038}
+.ticket{background:#fff;border-radius:6px;padding:26px 26px 30px;position:relative;font-family:var(--mono);font-size:13px;box-shadow:0 30px 60px -30px rgba(20,22,27,.35);transform:rotate(1.6deg)}
+.ticket::after{content:"";position:absolute;left:0;right:0;bottom:-10px;height:10px;background:linear-gradient(135deg,#fff 50%,transparent 50%) 0 0/12px 10px repeat-x,linear-gradient(225deg,#fff 50%,transparent 50%) 0 0/12px 10px repeat-x}
+.ticket .row{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px dashed #D9DCE1}
+.ticket .row span:first-child{color:var(--muted)}
+.ticket .big{font-family:var(--display);font-variation-settings:"wdth" 125;font-weight:900;font-size:clamp(96px,13vw,150px);line-height:.85;color:var(--accent);letter-spacing:-.05em;margin:18px 0 6px}
+.ticket .stamp{position:absolute;right:18px;top:110px;border:3px solid var(--accent);color:var(--accent);padding:4px 10px;font-weight:800;letter-spacing:.1em;transform:rotate(-12deg);border-radius:4px;font-size:14px}
+.loop{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:8px}
+.loop div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.loop b{display:block;font-family:var(--mono);font-size:12px;color:var(--accent);margin-bottom:4px}
+.loop span{font-size:14px;color:#2C3038}
+
+/* ---------- concept index ---------- */
+.index{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:28px}
+.index a{display:block;text-decoration:none;border-radius:12px;padding:20px;border:1px solid var(--line);background:var(--card);transition:transform .15s}
+.index a:hover{transform:translateY(-3px)}
+.index .sw{display:flex;gap:6px;margin-bottom:14px}
+.index .sw i{width:22px;height:22px;border-radius:50%;display:block;border:1px solid rgba(0,0,0,.1)}
+.index p{font-size:14px;color:var(--muted);margin-top:6px}
+
+/* ---------- concept section ---------- */
+.concept{display:grid;grid-template-columns:330px 1fr;gap:40px;align-items:start}
+.concept .about{position:sticky;top:24px;display:flex;flex-direction:column;gap:16px}
+.concept .about p{font-size:15px}
+.tag{display:inline-block;font-family:var(--mono);font-size:12px;padding:3px 8px;border-radius:4px;background:var(--ink);color:#fff}
+.pc{display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:14px}
+.pc ul{margin:6px 0 0;padding-left:18px}
+.pc li{margin:3px 0}
+.pc h4{margin:0;font-size:12px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em}
+.pc .pro h4{color:var(--plus)} .pc .con h4{color:var(--accent)}
+.mech{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ink);border-radius:8px;padding:14px 16px;font-size:14px}
+.mech b{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:4px}
+.strip{display:flex;gap:22px;overflow-x:auto;padding:6px 4px 24px}
+.shot{display:flex;flex-direction:column;gap:10px;flex:none}
+.shot figcaption{font-size:13px;color:var(--muted);max-width:272px}
+.shot figcaption b{color:var(--ink)}
+figure{margin:0}
+
+/* ---------- phone chrome ---------- */
+.phone{width:272px;flex:none;border-radius:42px;padding:9px;background:#0E0F12;box-shadow:0 40px 60px -35px rgba(10,12,20,.55),inset 0 0 0 1.5px #2A2C33}
+.screen{height:566px;border-radius:33px;overflow:hidden;position:relative;display:flex;flex-direction:column;font-size:12px;line-height:1.35}
+.sb{display:flex;justify-content:space-between;align-items:center;padding:10px 22px 4px;font-weight:600;font-size:11px;flex:none}
+.sb .isl{width:78px;height:22px;border-radius:12px;background:#000}
+.body{flex:1;overflow-y:auto;scrollbar-width:none}
+.body::-webkit-scrollbar{display:none}
+.av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:11px;flex:none;color:#fff}
+.a1{background:#E07A3F}.a2{background:#3F7EE0}.a3{background:#9B59D0}.a4{background:#2FA37A}.a5{background:#D04B6E}.a6{background:#C9A227}
+.tabbar{flex:none;display:flex;justify-content:space-around;padding:10px 8px 18px;font-size:10px}
+.tabbar span{display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.55}
+.tabbar span.on{opacity:1}
+.tabbar i{width:18px;height:18px;border-radius:5px;border:2px solid currentColor;display:block}
+.photo{border-radius:10px;overflow:hidden;position:relative;aspect-ratio:4/3}
+.photo svg{width:100%;height:100%;display:block}
+.photo .meta{position:absolute;left:8px;bottom:7px;font-family:var(--mono);font-size:9px;color:#fff;background:rgba(0,0,0,.45);padding:2px 6px;border-radius:4px}
+
+/* ---------- Concept 1: Tribunal ---------- */
+.tb{background:#1D1512;color:#EADFC8;font-family:var(--body)}
+.tb .sb{color:#EADFC8}
+.tb .hd{padding:6px 18px 12px;border-bottom:1px solid #3A2C24}
+.tb .hd small{font-family:var(--mono);font-size:9.5px;color:#C9A35B;letter-spacing:.12em;text-transform:uppercase}
+.tb .hd h5{font-family:"Fraunces",Georgia,serif;font-size:24px;font-weight:800;margin:2px 0 0;letter-spacing:-.01em}
+.tb .row{display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid #2E231E}
+.tb .rk{font-family:"Fraunces",Georgia,serif;font-size:17px;width:18px;color:#C9A35B}
+.tb .nm{flex:1;font-weight:600;font-size:13px}
+.tb .nm small{display:block;font-weight:400;color:#A8977C;font-size:10px}
+.tb .pts{font-family:var(--mono);font-weight:800;font-size:15px}
+.tb .neg{color:#E06A5A}.tb .pos{color:#9DBB7E}
+.tb .pend{font-family:var(--mono);font-size:9px;border:1px solid #C9A35B;color:#C9A35B;padding:1px 5px;border-radius:3px}
+.tb .gavel{margin:14px 18px;padding:12px;border:1px dashed #C9A35B;border-radius:8px;font-size:11px;color:#D8C9A8}
+.tb .gavel b{color:#C9A35B;font-family:var(--mono);font-size:10px;display:block;letter-spacing:.08em}
+.tb .case{padding:4px 18px 16px}
+.tb .charge{background:#2A1E19;border:1px solid #4A372C;border-radius:8px;padding:12px;margin:10px 0}
+.tb .charge .t{display:flex;justify-content:space-between;align-items:baseline}
+.tb .charge .t b{font-family:"Fraunces",Georgia,serif;font-size:15px}
+.tb .charge .t span{font-family:var(--mono);font-weight:800;font-size:20px;color:#E06A5A}
+.tb .charge small{color:#A8977C;font-size:10px}
+.tb .jury{margin:10px 0}
+.tb .bar{height:6px;border-radius:3px;background:#4A2A26;overflow:hidden;margin:6px 0 4px}
+.tb .bar i{display:block;height:100%;width:80%;background:#9DBB7E}
+.tb .btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.tb .btn{text-align:center;padding:9px;border-radius:6px;font-weight:700;font-size:12px}
+.tb .uphold{background:#C9A35B;color:#1D1512}
+.tb .object{border:1px solid #C9A35B;color:#C9A35B}
+.tb .cm{display:flex;gap:8px;padding:8px 0;border-top:1px solid #2E231E}
+.tb .cm p{font-size:11.5px}
+.tb .cm small{color:#A8977C;font-size:10px}
+.tb .cm.reply{margin-left:28px;border-top:none;padding-top:0}
+.tb label{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#C9A35B;margin:14px 0 6px}
+.tb .chips{display:flex;flex-wrap:wrap;gap:6px}
+.tb .chip{display:flex;align-items:center;gap:5px;padding:4px 9px 4px 4px;border-radius:20px;border:1px solid #4A372C;font-size:11px}
+.tb .chip .av{width:20px;height:20px;font-size:9px}
+.tb .chip.on{border-color:#C9A35B;background:#3A2B1E}
+.tb .sel{border:1px solid #4A372C;border-radius:6px;overflow:hidden}
+.tb .sel div{display:flex;justify-content:space-between;padding:7px 10px;border-bottom:1px solid #2E231E;font-size:11.5px}
+.tb .sel div:last-child{border-bottom:none}
+.tb .sel div.on{background:#3A2B1E;box-shadow:inset 3px 0 #C9A35B}
+.tb .sel span{font-family:var(--mono);font-weight:700}
+.tb .ev{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tb .ev div{aspect-ratio:1;border-radius:6px;border:1px dashed #4A372C;display:grid;place-items:center;color:#A8977C;font-size:18px;overflow:hidden}
+.tb .ta{border:1px solid #4A372C;border-radius:6px;padding:8px 10px;color:#D8C9A8;font-style:italic;font-size:11.5px;min-height:46px}
+.tb .file{margin:16px 0 4px;background:#8E2A2A;color:#F4E9D6;text-align:center;padding:11px;border-radius:8px;font-weight:700;font-family:"Fraunces",Georgia,serif;font-size:14px}
+
+/* ---------- Concept 2: Matchday ---------- */
+.md{background:#0A1530;color:#F2F5FB;font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:14px}
+.md .sb{font-family:var(--body);color:#fff}
+.md .hd{padding:6px 16px 10px;display:flex;justify-content:space-between;align-items:center}
+.md .hd h5{margin:0;font-size:26px;font-weight:800;text-transform:uppercase;letter-spacing:.01em;line-height:1}
+.md .live{background:#FF4F5E;color:#fff;font-weight:700;font-size:11px;padding:2px 7px;border-radius:3px;letter-spacing:.08em}
+.md .live::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#fff;margin-right:5px;vertical-align:1px}
+.md .days{display:flex;gap:6px;padding:0 16px 10px}
+.md .days span{flex:1;text-align:center;padding:5px 0;border-radius:4px;background:#13224A;font-weight:600;font-size:12px;color:#8FA0C8}
+.md .days span.on{background:#FFD23F;color:#0A1530}
+.md table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.md th{font-size:10.5px;color:#8FA0C8;font-weight:600;text-align:left;padding:4px 6px;letter-spacing:.06em}
+.md td{padding:8px 6px;border-top:1px solid #16285A;font-size:15px;font-weight:600}
+.md td:first-child,.md th:first-child{padding-left:16px;width:26px}
+.md td:last-child,.md th:last-child{padding-right:16px;text-align:right}
+.md .pts{font-weight:800;font-size:17px}
+.md .up{color:#2BD67B}.md .dn{color:#FF4F5E}.md .eq{color:#8FA0C8}
+.md .form{display:flex;gap:3px}
+.md .form i{width:8px;height:8px;border-radius:2px;display:block}
+.md .form .w{background:#2BD67B}.md .form .l{background:#FF4F5E}.md .form .d{background:#3A4C7A}
+.md tr.zone td{background:rgba(255,79,94,.1)}
+.md .zl td{border-top:2px dashed #FF4F5E;padding:3px 16px;font-size:10px;color:#FF4F5E;letter-spacing:.12em;background:none}
+.md .mvp{margin:12px 16px;background:linear-gradient(110deg,#FFD23F,#FFB23F);color:#0A1530;border-radius:8px;padding:10px 12px;display:flex;gap:10px;align-items:center}
+.md .mvp b{display:block;font-size:18px;text-transform:uppercase;line-height:1}
+.md .mvp small{font-size:12px;font-weight:600}
+.md .tk{display:flex;gap:10px;padding:10px 16px;border-top:1px solid #16285A}
+.md .tk time{font-size:12px;color:#8FA0C8;width:32px;flex:none;padding-top:2px}
+.md .tk .pp{font-weight:800;font-size:22px;width:38px;flex:none;line-height:1}
+.md .tk .tx{flex:1;font-size:14px;line-height:1.2}
+.md .tk .tx b{text-transform:uppercase;letter-spacing:.02em}
+.md .tk .tx small{display:block;color:#8FA0C8;font-size:12px;margin-top:2px}
+.md .tk .th{width:44px;height:44px;border-radius:6px;overflow:hidden;flex:none}
+.md .tk .th svg{width:100%;height:100%}
+.md .card{margin:4px 14px 12px;border-radius:12px;background:linear-gradient(160deg,#1C3170,#0E1B42);padding:14px;position:relative;overflow:hidden}
+.md .card .rank{position:absolute;right:12px;top:4px;font-size:72px;font-weight:800;color:rgba(255,255,255,.08);line-height:1}
+.md .card .av{width:46px;height:46px;font-size:17px;font-family:var(--body)}
+.md .card h6{margin:8px 0 0;font-size:30px;font-weight:800;text-transform:uppercase;line-height:1}
+.md .card .sub{color:#FF4F5E;font-weight:700;font-size:13px;letter-spacing:.06em}
+.md .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 14px}
+.md .stats div{background:#13224A;border-radius:8px;padding:8px;text-align:center}
+.md .stats b{display:block;font-size:22px;font-weight:800;line-height:1.1}
+.md .stats small{color:#8FA0C8;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+.md .spark{margin:10px 14px;background:#13224A;border-radius:8px;padding:10px}
+.md .spark small{color:#8FA0C8;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.md .badge{display:inline-block;margin:0 14px 6px 0;background:#13224A;border:1px solid #2A3E78;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600}
+.md .badges{padding:4px 0 0 14px}
+
+/* ---------- Concept 3: Receipts ---------- */
+.rc{background:#FFE9DF;color:#1A1414;font-family:var(--body)}
+.rc .sb{color:#1A1414}
+.rc .hd{padding:4px 14px 8px;display:flex;justify-content:space-between;align-items:center}
+.rc .hd h5{margin:0;font-family:var(--display);font-variation-settings:"wdth" 125;font-weight:900;font-size:20px;letter-spacing:-.02em}
+.rc .hd span{font-family:var(--mono);font-size:10px;background:#1A1414;color:#FFE9DF;padding:3px 7px;border-radius:20px}
+.rc .lb{display:flex;gap:10px;padding:4px 14px 12px;overflow:hidden}
+.rc .lb div{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;font-weight:600}
+.rc .lb .av{width:38px;height:38px;font-size:13px;box-shadow:0 0 0 2px #FFE9DF,0 0 0 4px #FF3D7F}
+.rc .lb .av.cold{box-shadow:0 0 0 2px #FFE9DF,0 0 0 4px #7AA2FF}
+.rc .lb small{font-family:var(--mono);font-size:10px}
+.rc .post{background:#fff;margin:0 10px 18px;border-radius:4px 4px 0 0;padding:10px;position:relative;font-size:12px}
+.rc .post::after{content:"";position:absolute;left:0;right:0;bottom:-8px;height:8px;background:linear-gradient(135deg,#fff 50%,transparent 50%) 0 0/10px 8px repeat-x,linear-gradient(225deg,#fff 50%,transparent 50%) 0 0/10px 8px repeat-x}
+.rc .who{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.rc .who b{font-size:12px}
+.rc .who small{display:block;color:#8A7F7B;font-size:10px}
+.rc .stampx{position:absolute;right:16px;top:58px;font-family:var(--mono);font-weight:800;color:#FF3D7F;border:2.5px solid #FF3D7F;border-radius:4px;padding:2px 8px;transform:rotate(-10deg);background:rgba(255,255,255,.85);font-size:15px;z-index:2}
+.rc .stampx.plus{color:#159A62;border-color:#159A62}
+.rc .ln{font-family:var(--mono);font-size:10.5px;display:flex;justify-content:space-between;border-top:1px dashed #D8D0CC;padding:6px 0 0;margin-top:8px}
+.rc .rx{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.rc .rx span{background:#FFF1EA;border-radius:20px;padding:2px 8px;font-size:11px}
+.rc .rx span.on{background:#FFD3E2;box-shadow:inset 0 0 0 1px #FF3D7F}
+.rc .rx .more{margin-left:auto;background:none;color:#8A7F7B;font-weight:600}
+.rc .reply{display:flex;gap:8px;padding:8px 14px}
+.rc .reply .av{width:24px;height:24px;font-size:10px}
+.rc .reply .bub{background:#fff;border-radius:4px 12px 12px 12px;padding:7px 10px;font-size:11.5px;flex:1}
+.rc .reply .bub b{display:block;font-size:11px}
+.rc .reply .bub small{color:#8A7F7B;font-size:10px}
+.rc .reply.nest{padding-left:46px}
+.rc .reply .att{margin-top:6px;border-radius:6px;overflow:hidden;height:70px}
+.rc .reply .att svg{width:100%;height:100%;display:block}
+.rc .composer{margin:6px 10px 10px;background:#fff;border-radius:20px;padding:8px 12px;color:#8A7F7B;display:flex;justify-content:space-between;font-size:11.5px}
+.rc .fab{position:absolute;right:16px;bottom:72px;width:52px;height:52px;border-radius:50%;background:#FF3D7F;color:#fff;display:grid;place-items:center;font-size:28px;font-weight:300;box-shadow:0 10px 20px -8px #FF3D7F}
+.rc .tabbar{background:#fff}
+.rc .cam{height:200px;position:relative;flex:none}
+.rc .cam svg{width:100%;height:100%;display:block}
+.rc .cam .shut{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);width:44px;height:44px;border-radius:50%;border:4px solid #fff;background:rgba(255,255,255,.3)}
+.rc .sheet{background:#fff;border-radius:18px 18px 0 0;margin-top:-16px;position:relative;flex:1;padding:8px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.rc .sheet .grab{width:36px;height:4px;border-radius:2px;background:#E2D9D5;margin:0 auto 2px}
+.rc .sheet label{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#8A7F7B}
+.rc .people{display:flex;gap:8px}
+.rc .people .av{width:32px;height:32px;opacity:.4}
+.rc .people .av.on{opacity:1;box-shadow:0 0 0 2px #fff,0 0 0 4px #FF3D7F}
+.rc .search{border:1px solid #E2D9D5;border-radius:8px;padding:6px 10px;color:#1A1414;font-size:11.5px}
+.rc .rules{display:flex;flex-wrap:wrap;gap:5px}
+.rc .rules span{border:1px solid #E2D9D5;border-radius:20px;padding:3px 9px;font-size:11px}
+.rc .rules span.on{background:#1A1414;color:#fff;border-color:#1A1414}
+.rc .rules b{font-family:var(--mono)}
+.rc .step{display:flex;align-items:center;justify-content:space-between;border:1px solid #E2D9D5;border-radius:8px;padding:4px 6px}
+.rc .step span{width:26px;height:26px;border-radius:6px;background:#FFF1EA;display:grid;place-items:center;font-weight:700}
+.rc .step b{font-family:var(--mono);font-size:20px;color:#FF3D7F}
+.rc .go{background:#FF3D7F;color:#fff;text-align:center;border-radius:10px;padding:11px;font-weight:700;font-size:13px;margin-top:auto}
+.rc .stampx.pend{border-style:dashed;color:#8A7F7B;border-color:#8A7F7B;font-size:12px}
+.rc .need{margin:0 10px 10px;background:#1A1414;color:#fff;border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;font-size:11.5px;font-weight:600}
+.rc .need span:last-child{color:#FF8FB3}
+.rc .vote{display:flex;align-items:center;gap:8px;margin-top:8px}
+.rc .dots{display:flex;gap:3px}
+.rc .dots i{width:14px;height:6px;border-radius:3px;background:#E2D9D5;display:block}
+.rc .dots i.y{background:#159A62}
+.rc .vote small{font-size:10.5px;color:#8A7F7B;flex:1}
+.rc .vb{padding:5px 10px;border-radius:6px;font-weight:700;font-size:11px}
+.rc .vb.ok{background:#159A62;color:#fff}
+.rc .vb.no{border:1px solid #E2D9D5;color:#8A7F7B}
+.rc .rules span.new{border-style:dashed;border-color:#FF3D7F;color:#FF3D7F;font-weight:600}
+.rc .nomatch{font-size:11px;color:#8A7F7B}
+.rc .create{border:1.5px dashed #FF3D7F;border-radius:8px;padding:8px 10px;font-size:12px;background:#FFF5F8}
+.rc .create b{color:#FF3D7F}
+.rc .field{border:1px solid #E2D9D5;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600}
+.rc .seg{display:grid;grid-template-columns:1fr 1fr;background:#F3EEEB;border-radius:8px;padding:3px;font-size:11.5px;font-weight:600;text-align:center}
+.rc .seg span{padding:5px;border-radius:6px;color:#8A7F7B}
+.rc .seg span.on{background:#fff;color:#FF3D7F;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.rc .tog{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;gap:10px}
+.rc .tog small{display:block;color:#8A7F7B;font-size:10px}
+.rc .tog i{width:34px;height:20px;border-radius:10px;background:#FF3D7F;position:relative;flex:none}
+.rc .tog i::after{content:"";position:absolute;right:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff}
+.rc .cap{font-family:var(--mono);font-size:9.5px;color:#8A7F7B;text-align:center}
+.idgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}
+.idgrid div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;font-size:14px}
+.idgrid b{display:block;font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.idgrid .no b{color:var(--accent)}
+
+/* ---------- lower sections ---------- */
+.pick{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.pick ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}
+.pick li{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;grid-template-columns:110px 1fr;gap:12px;font-size:15px}
+.pick li b{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.05em;padding-top:2px}
+.lede{font-size:18px;color:#2C3038;margin-top:16px}
+.rulebook{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:28px}
+.rulebook h3{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:8px;border-bottom:2px solid var(--ink)}
+.rulebook h3 small{font-family:var(--mono);font-size:12px;font-weight:400;color:var(--muted)}
+.rule{display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-bottom:1px solid var(--line);font-size:15px}
+.rule small{display:block;color:var(--muted);font-size:13px}
+.rule b{font-family:var(--mono);font-weight:800;white-space:nowrap}
+.minus b{color:var(--accent)} .plus b{color:var(--plus)}
+.house{margin-top:28px;display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.house div{background:var(--ink);color:#E9ECEF;border-radius:10px;padding:16px;font-size:14px}
+.house b{display:block;font-family:var(--display);font-variation-settings:"wdth" 112;font-size:17px;margin-bottom:4px;color:#fff}
+.feat{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:28px}
+.feat > div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
+.feat h3{font-size:17px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.feat ul{margin:0;padding-left:18px;font-size:14px}
+.feat li{margin:5px 0}
+.pill{font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600;letter-spacing:.04em}
+.p-must{background:var(--ink);color:#fff}.p-soon{background:#D6DCE4;color:var(--ink)}.p-maybe{border:1px solid var(--line);color:var(--muted)}
+.tech{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;margin-top:28px;align-items:start}
+.stack{display:flex;flex-direction:column;gap:10px}
+.stack div{display:grid;grid-template-columns:120px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--line);font-size:15px}
+.stack b{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.05em;padding-top:3px}
+pre{margin:0;background:#14161B;color:#D5DAE3;border-radius:12px;padding:18px;font-family:var(--mono);font-size:12.5px;line-height:1.6;overflow-x:auto}
+pre .c{color:#7C8597}pre .k{color:#FF8A73}
+.note{margin-top:16px;background:#FFF4E0;border:1px solid #F0D49A;border-radius:10px;padding:14px 16px;font-size:14px}
+.phases{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:28px}
+.phases div{border-top:4px solid var(--ink);background:var(--card);padding:14px 16px;border-radius:0 0 10px 10px;font-size:14px}
+.phases b{display:block;font-family:var(--mono);font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.phases h4{margin:2px 0 6px;font-family:var(--display);font-size:17px;font-variation-settings:"wdth" 110}
+.qs{columns:2;column-gap:40px;margin-top:24px;padding-left:20px;font-size:15px}
+.qs li{margin:0 0 10px;break-inside:avoid}
+footer{padding:32px 0 56px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+
+@media (max-width:960px){
+  .hero,.concept,.pick,.tech{grid-template-columns:1fr}
+  .concept .about{position:static}
+  .index,.feat,.house{grid-template-columns:1fr}
+  .phases,.loop{grid-template-columns:1fr 1fr}
+  .rulebook{grid-template-columns:1fr}
+  .ticket{max-width:420px}
+}
+@media (max-width:520px){
+  .wrap{padding:0 16px}
+  .phases,.loop,.pc{grid-template-columns:1fr}
+  .qs{columns:1}
+  .pick li,.stack div{grid-template-columns:1fr;gap:4px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- reusable "evidence photo" illustrations -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="barlight" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3B1D4A"/><stop offset=".6" stop-color="#7A2E3B"/><stop offset="1" stop-color="#E0884A"/></linearGradient>
+    <linearGradient id="drink" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFB547"/><stop offset="1" stop-color="#E5552E"/></linearGradient>
+    <linearGradient id="beach" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5CC3E8"/><stop offset=".62" stop-color="#9EE0F2"/><stop offset=".63" stop-color="#F2D59A"/><stop offset="1" stop-color="#E8C27A"/></linearGradient>
+  </defs>
+  <symbol id="straw" viewBox="0 0 160 120">
+    <rect width="160" height="120" fill="url(#barlight)"/>
+    <circle cx="30" cy="22" r="10" fill="#FFD9A0" opacity=".35"/><circle cx="128" cy="30" r="16" fill="#FFD9A0" opacity=".25"/>
+    <ellipse cx="62" cy="62" rx="16" ry="20" fill="#2A1620"/><rect x="48" y="78" width="28" height="42" rx="8" fill="#2A1620"/>
+    <path d="M86 50 L112 50 L106 104 L92 104 Z" fill="url(#drink)" opacity=".95"/>
+    <path d="M86 50 L112 50" stroke="#fff" stroke-width="2" opacity=".6"/>
+    <path d="M104 36 L97 74" stroke="#FF3D7F" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M104 36 L76 58" stroke="#FF3D7F" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="74" cy="60" r="5" fill="none" stroke="#FFD23F" stroke-width="2"/>
+  </symbol>
+  <symbol id="toast" viewBox="0 0 160 120">
+    <rect width="160" height="120" fill="#2B2440"/>
+    <rect x="0" y="86" width="160" height="34" fill="#4A3426"/>
+    <g transform="rotate(-14 62 70)"><rect x="46" y="44" width="30" height="42" rx="3" fill="#F4B63F"/><rect x="46" y="40" width="30" height="9" rx="3" fill="#FFF6DD"/><path d="M76 54 h8 a6 6 0 0 1 0 22 h-8" fill="none" stroke="#F4B63F" stroke-width="4"/></g>
+    <g transform="rotate(14 100 70)"><rect x="86" y="44" width="30" height="42" rx="3" fill="#F4B63F"/><rect x="86" y="40" width="30" height="9" rx="3" fill="#FFF6DD"/><path d="M86 54 h-8 a6 6 0 0 0 0 22 h8" fill="none" stroke="#F4B63F" stroke-width="4"/></g>
+    <path d="M78 26 l3 8 M84 24 v8 M90 26 l-3 8" stroke="#FFF6DD" stroke-width="2.5" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="nap" viewBox="0 0 160 120">
+    <rect width="160" height="120" fill="url(#beach)"/>
+    <rect x="34" y="78" width="96" height="14" rx="4" fill="#E04E5C"/>
+    <circle cx="44" cy="74" r="10" fill="#C98A5E"/><rect x="52" y="70" width="58" height="12" rx="6" fill="#3F7EE0"/>
+    <text x="64" y="52" font-family="Arial" font-weight="700" font-size="16" fill="#fff">z z Z</text>
+  </symbol>
+</svg>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div>
+      <div class="eyebrow">Concept drafts · iOS + Android · v0.3</div>
+      <h1>Every point needs a <em>receipt</em>.</h1>
+      <p>A shared, live scoreboard for the bachelor trip. Anyone can log points against anyone, but each entry carries its evidence: a photo, a video, a comment thread, and the group's verdict. Below are three directions for how it could look and feel, a starter rulebook, and a build plan.</p>
+      <div class="loop" style="margin-top:28px">
+        <div><b>01 · Spot it</b><span>Jonno sips a mojito through a straw.</span></div>
+        <div><b>02 · Log it</b><span>Dev snaps a photo, tags Jonno, picks the rule.</span></div>
+        <div><b>03 · Confirm it</b><span>3 other players vote it through, or it doesn't count.</span></div>
+        <div><b>04 · Rank it</b><span>The leaderboard updates on every phone.</span></div>
+      </div>
+    </div>
+    <div class="ticket" aria-label="Example point entry">
+      <div class="stamp">CONFIRMED 3–0</div>
+      <div class="row"><span>ENTRY</span><span>#014</span></div>
+      <div class="row"><span>PLAYER</span><span>Jonno</span></div>
+      <div class="row"><span>RULE</span><span>Drinking from a straw</span></div>
+      <div class="row"><span>FILED BY</span><span>Dev · Fri 21:42</span></div>
+      <div class="row"><span>EVIDENCE</span><span>1 photo · 7 replies</span></div>
+      <div class="big num">−5</div>
+      <div class="row" style="border:none"><span>NEW TOTAL</span><span>−15 · 6th of 6</span></div>
+    </div>
+  </header>
+
+  <section style="padding-top:48px">
+    <div class="eyebrow">Three directions</div>
+    <h2 style="margin-top:8px">Same data, three personalities</h2>
+    <p class="lede">Every concept does the same core job: log points, attach proof, discuss, rank. What changes is the main screen and how much ceremony an entry needs before it counts. Names and scores are example data.</p>
+    <div class="index">
+      <a href="#tribunal"><div class="sw"><i style="background:#1D1512"></i><i style="background:#C9A35B"></i><i style="background:#8E2A2A"></i></div><h3>01 · The Tribunal</h3><p>Every entry is a charge. The group votes to uphold or throw it out. The groom is the judge.</p></a>
+      <a href="#matchday"><div class="sw"><i style="background:#0A1530"></i><i style="background:#FFD23F"></i><i style="background:#FF4F5E"></i></div><h3>02 · Matchday</h3><p>The trip is a sports season. A live league table, daily MVP, and a forfeit zone.</p></a>
+      <a href="#receipts"><div class="sw"><i style="background:#FFE9DF"></i><i style="background:#FF3D7F"></i><i style="background:#1A1414"></i></div><h3>03 · Receipts</h3><p>A social feed of evidence posts. Reactions, threaded replies, and a three-tap quick add.</p></a>
+    </div>
+  </section>
+
+  <!-- ===== Concept 1 ===== -->
+  <section id="tribunal">
+    <div class="concept">
+      <div class="about">
+        <span class="tag">Concept 01</span>
+        <h2>The Tribunal</h2>
+        <p>Points are legal proceedings. Logging a penalty files a <b>charge</b>; logging a bonus files a <b>commendation</b>. Nothing hits the scoreboard until the jury (everyone except the accused) has had its say.</p>
+        <div class="mech"><b>Core mechanic</b>An entry needs 2 votes to uphold, or it's thrown out after 3 objections. The groom gets one gavel per day to overrule any verdict.</div>
+        <div class="pc">
+          <div class="pro"><h4>Works because</h4><ul><li>Fewest arguments about fairness</li><li>The debate is part of the fun</li><li>Built-in role for the groom</li></ul></div>
+          <div class="con"><h4>Watch out</h4><ul><li>Slower: points wait for votes</li><li>Needs push notifications to work</li></ul></div>
+        </div>
+      </div>
+      <div class="strip">
+        <figure class="shot">
+          <div class="phone"><div class="screen tb">
+            <div class="sb"><span>9:41</span><span class="isl"></span><span>5G</span></div>
+            <div class="hd"><small>The Docket · Day 2 of 4</small><h5>Standings</h5></div>
+            <div class="body">
+              <div class="row"><span class="rk">I</span><span class="av a2">D</span><span class="nm">Dev<small>4 commendations</small></span><span class="pts pos num">45</span></div>
+              <div class="row"><span class="rk">II</span><span class="av a4">T</span><span class="nm">Tommo<small>1 pending</small></span><span class="pend">1</span><span class="pts pos num">30</span></div>
+              <div class="row"><span class="rk">III</span><span class="av a3">S</span><span class="nm">Sully<small>Clean record</small></span><span class="pts pos num">20</span></div>
+              <div class="row"><span class="rk">IV</span><span class="av a6">M</span><span class="nm">Marco · The Judge<small>Penalties count double</small></span><span class="pts pos num">10</span></div>
+              <div class="row"><span class="rk">V</span><span class="av a5">K</span><span class="nm">Kev<small>2 pending</small></span><span class="pend">2</span><span class="pts pos num">5</span></div>
+              <div class="row"><span class="rk">VI</span><span class="av a1">J</span><span class="nm">Jonno<small>Repeat offender · 4 charges</small></span><span class="pts neg num">−15</span></div>
+              <div class="gavel"><b>GAVEL AVAILABLE</b>Marco has 1 overrule left today. Resets at 06:00.</div>
+            </div>
+            <div class="tabbar"><span class="on"><i></i>Docket</span><span><i></i>Cases</span><span><i></i>File</span><span><i></i>Statutes</span></div>
+          </div></div>
+          <figcaption><b>Standings.</b> Pending charges show beside each name so nobody forgets to vote.</figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="phone"><div class="screen tb">
+            <div class="sb"><span>9:41</span><span class="isl"></span><span>5G</span></div>
+            <div class="hd"><small>Case #014 · Open</small><h5>The Group v. Jonno</h5></div>
+            <div class="body case">
+              <div class="charge">
+                <div class="t"><b>Drinking from a straw</b><span class="num">−5</span></div>
+                <small>Filed by Dev · Fri 21:42 · Bar Lisboa</small>
+              </div>
+              <div class="photo"><svg><use href="#straw"/></svg><span class="meta">EXHIBIT A · IMG_2041</span></div>
+              <div class="jury">
+                <small style="color:#A8977C">Jury · 5 of 5 voted</small>
+                <div class="bar"><i></i></div>
+                <small style="font-family:var(--mono);font-size:10px">4 UPHOLD · 1 OBJECT</small>
+              </div>
+              <div class="btns"><span class="btn uphold">Uphold</span><span class="btn object">Object</span></div>
+              <div class="cm"><span class="av a1" style="width:22px;height:22px;font-size:9px">J</span><div><small>Jonno · Defendant</small><p>It was a stirrer. I was stirring.</p></div></div>
+              <div class="cm reply"><span class="av a3" style="width:22px;height:22px;font-size:9px">S</span><div><small>Sully</small><p>Stirrers don't have liquid going UP them mate</p></div></div>
+              <div class="cm"><span class="av a4" style="width:22px;height:22px;font-size:9px">T</span><div><small>Tommo</small><p>Exhibit B incoming, I have video</p></div></div>
+            </div>
+          </div></div>
+          <figcaption><b>Case file.</b> Evidence, the vote, and the defendant's right of reply in one place.</figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="phone"><div class="screen tb">
+            <div class="sb"><span>9:41</span><span class="isl"></span><span>5G</span></div>
+            <div class="hd"><small>New filing</small><h5>File a charge</h5></div>
+            <div class="body case">
+              <label>Defendant</label>
+              <div class="chips">
+                <span class="chip on"><span class="av a1">J</span>Jonno</span><span class="chip"><span class="av a5">K</span>Kev</span><span class="chip"><span class="av a6">M</span>Marco</span><span class="chip"><span class="av a3">S</span>Sully</span>
+              </div>
+              <label>Statute</label>
+              <div class="sel">
+                <div class="on">Drinking from a straw<span>−5</span></div>
+                <div>Checking work email<span>−10</span></div>
+                <div>Asleep before midnight<span>−15</span></div>
+                <div>Other (jury sets points)<span>±?</span></div>
+              </div>
+              <label>Evidence</label>
+              <div class="ev"><div><svg width="100%" height="100%"><use href="#straw"/></svg></div><div>+</div><div>+</div></div>
+              <label>Statement</label>
+              <div class="ta">Caught red-handed at the bar. Pink straw. No remorse shown.</div>
+              <div class="file">File charge</div>
+            </div>
+          </div></div>
+          <figcaption><b>Filing.</b> Pick person, pick rule from the rulebook ("statutes"), attach proof, add a statement.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Concept 2 ===== -->
+  <section id="matchday">
+    <div class="concept">
+      <div class="about">
+        <span class="tag">Concept 02</span>
+        <h2>Matchday</h2>
+        <p>The trip is a short sports season. Each day is a <b>matchday</b> with its own table, and the overall standings roll up across the trip. Entries land instantly, like goals on a live ticker.</p>
+        <div class="mech"><b>Core mechanic</b>Points count straight away. The bottom two each night sit in the <b>forfeit zone</b> and owe the group something the next morning (first round, breakfast run). Highest daily score is MVP.</div>
+        <div class="pc">
+          <div class="pro"><h4>Works because</h4><ul><li>Fast and instant</li><li>Daily resets keep stragglers in it</li><li>Stats are great for the end-of-trip recap</li></ul></div>
+          <div class="con"><h4>Watch out</h4><ul><li>No built-in way to dispute</li><li>Less room for photos on the main screen</li></ul></div>
+        </div>
+      </div>
+      <div class="strip">
+        <figure class="shot">
+          <div class="phone"><div class="screen md">
+            <div class="sb"><span>9:41</span><span class="isl"></span><span>5G</span></div>
+            <div class="hd"><h5>League table</h5><span class="live">LIVE</span></div>
+            <div class="days"><span>DAY 1</span><span class="on">DAY 2</span><span>DAY 3</span><span>TRIP</span></div>
+            <div class="body">
+              <table>
+                <thead><tr><th>#</th><th>PLAYER</th><th></th><th>FORM</th><th>PTS</th></tr></thead>
+                <tbody>
+                  <tr><td>1</td><td>DEV</td><td class="eq">–</td><td><span class="form"><i class="w"></i><i class="w"></i><i class="d"></i><i class="w"></i></span></td><td class="pts">45</td></tr>
+                  <tr><td>2</td><td>TOMMO</td><td class="up">▲2</td><td><span class="form"><i class="w"></i><i class="w"></i><i class="w"></i><i class="l"></i></span></td><td class="pts">30</td></tr>
+                  <tr><td>3</td><td>SULLY</td><td class="dn">▼1</td><td><span class="form"><i class="d"></i><i class="w"></i><i class="d"></i><i class="d"></i></span></td><td class="pts">20</td></tr>
+                  <tr><td>4</td><td>MARCO ★</td><td class="dn">▼1</td><td><span class="form"><i class="l"></i><i class="w"></i><i class="l"></i><i class="w"></i></span></td><td class="pts">10</td></tr>
+                  <tr class="zl"><td colspan="5">FORFEIT ZONE</td></tr>
+                  <tr class="zone"><td>5</td><td>KEV</td><td class="eq">–</td><td><span class="form"><i class="l"></i><i class="d"></i><i class="l"></i><i class="w"></i></span></td><td class="pts">5</td></tr>
+                  <tr class="zone"><td>6</td><td>JONNO</td><td class="dn">▼1</td><td><span class="form"><i class="l"></i><i class="l"></i><i class="l"></i><i class="l"></i></span></td><td class="pts dn">−15</td></tr>
+                </tbody>
+              </table>
+              <div class="mvp"><span class="av a2" style="font-family:var(--body)">D</span><div><small>DAY 1 MVP</small><b>Dev · +35</b></div></div>
+            </div>
+            <div class="tabbar" style="font-family:var(--body)"><span class="on"><i></i>Table</span><span><i></i>Ticker</span><span><i></i>Log</span><span><i></i>Rules</span></div>
+          </div></div>
+          <figcaption><b>League table.</b> Movement arrows, recent form, and the forfeit zone. ★ marks the groom.</figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="phone"><div class="screen md">
+            <div class="sb"><span>9:41</span><span class="isl"></span><span>5G</span></div>
+            <div class="hd"><h5>Live ticker</h5><span class="live">LIVE</span></div>
+            <div class="body">
+              <div class="tk"><time>21:42</time><span class="pp dn num">−5</span><div class="tx"><b>Jonno</b> drinking from a straw<small>Logged by Dev · 7 replies</small></div><span class="th"><svg viewBox="0 0 160 120" preserveAspectRatio="xMidYMid slice"><use href="#straw"/></svg></span></div>
+              <div class="tk"><time>21:15</time><span class="pp up num">+10</span><div class="tx"><b>Tommo</b> got a stranger to toast the groom<small>Logged by Sully · 3 replies</small></div><span class="th"><svg viewBox="0 0 160 120" preserveAspectRatio="xMidYMid slice"><use href="#toast"/></svg></span></div>
+              <div class="tk"><time>20:30</time><span class="pp dn num">−20</span><div class="tx"><b>Marco ★</b> checking work email (×2 groom)<small>Logged by Kev</small></div></div>
+              <div class="tk"><time>19:05</time><span class="pp up num">+15</span><div class="tx"><b>Dev</b> won the pool tournament<small>Logged by Marco · 2 photos</small></div></div>
+              <div class="tk"><time>16:40</time><span class="pp dn num">−15</span><div class="tx"><b>Kev</b> asleep on a sunbed by 4pm<small>Logged by Jonno</small></div><span class="th"><svg viewBox="0 0 160 120" preserveAspectRatio="xMidYMid slice"><use href="#nap"/></svg></span></div>
+            </div>
+            <div class="tabbar" style="font-family:var(--body)"><span><i></i>Table</span><span class="on"><i></i>Ticker</span><span><i></i>Log</span><span><i></i>Rules</span></div>
+          </div></div>
+          <figcaption><b>Ticker.</b> Every entry in time order. Tap one to open the photos and comment thread.</figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="phone"><div class="screen md">
+            <div class="sb"><span>9:41</span><span class="isl"></span><span>5G</span></div>
+            <div class="body" style="padding-top:6px">
+              <div class="card"><span class="rank">6</span><span class="av a1">J</span><h6>Jonno</h6><span class="sub">FORFEIT ZONE · 4 GAME SKID</span></div>
+              <div class="stats">
+                <div><b class="num">−15</b><small>Total</small></div>
+                <div><b class="num dn">6</b><small>Penalties</small></div>
+                <div><b class="num up">2</b><small>Bonuses</small></div>
+              </div>
+              <div class="spark">
+                <small>Points across the trip</small>
+                <svg viewBox="0 0 220 70" width="100%" height="70" aria-label="Jonno's points: 0, 10, 5, 15, 0, minus 10, minus 15">
+                  <line x1="0" y1="35" x2="220" y2="35" stroke="#2A3E78" stroke-dasharray="3 3"/>
+                  <polygon points="6,35 40,23 74,29 108,17 142,35 176,47 210,53 210,35 6,35" fill="#FF4F5E" opacity=".15"/>
+                  <polyline points="6,35 40,23 74,29 108,17 142,35 176,47 210,53" fill="none" stroke="#FF4F5E" stroke-width="2.5" stroke-linejoin="round"/>
+                  <circle cx="210" cy="53" r="4" fill="#FF4F5E"/>
+                  <text x="4" y="66" fill="#8FA0C8" font-size="10" font-family="Barlow Condensed">FRI</text>
+                  <text x="196" y="66" fill="#8FA0C8" font-size="10" font-family="Barlow Condensed">NOW</text>
+                </svg>
+              </div>
+              <div class="badges"><span class="badge">🥤 Straw Man ×3</span><span class="badge">📵 Phone lost once</span><span class="badge">🎤 Karaoke +10</span></div>
+            </div>
+            <div class="tabbar" style="font-family:var(--body)"><span class="on"><i></i>Table</span><span><i></i>Ticker</span><span><i></i>Log</span><span><i></i>Rules</span></div>
+          </div></div>
+          <figcaption><b>Player card.</b> Totals, a points-over-time line, and auto badges for repeat offences.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Concept 3 ===== -->
+  <section id="receipts">
+    <div class="concept">
+      <div class="about">
+        <span class="tag">Concept 03</span>
+        <h2>Receipts</h2>
+        <p>A private social feed where every post is evidence. The home screen is the photos and the banter; the leaderboard is a strip of faces pinned to the top. Logging is built around the camera: snap, tag, pick a rule, post.</p>
+        <div class="mech"><b>Core mechanic</b>Posts go up instantly as <b>pending</b>. They only hit the scoreboard once 3 other players tap Confirm. You can log points for anyone, including yourself. Reactions feed end-of-trip awards like "Most Laughed At".</div>
+        <div class="pc">
+          <div class="pro"><h4>Works because</h4><ul><li>Fastest to log in a loud bar</li><li>Doubles as the trip photo album</li><li>Comments and replies feel familiar</li></ul></div>
+          <div class="con"><h4>Watch out</h4><ul><li>Points wait for votes</li><li>Photo storage adds up</li></ul></div>
+        </div>
+      </div>
+      <div class="strip">
+        <figure class="shot">
+          <div class="phone"><div class="screen rc">
+            <div class="sb"><span>9:41</span><span class="isl"></span><span>5G</span></div>
+            <div class="hd"><h5>RECEIPTS</h5><span>Lisbon · Day 2</span></div>
+            <div class="lb">
+              <div><span class="av a2">D</span><small>45</small></div>
+              <div><span class="av a4">T</span><small>30</small></div>
+              <div><span class="av a3">S</span><small>20</small></div>
+              <div><span class="av a6">M</span><small>10</small></div>
+              <div><span class="av a5 cold">K</span><small>5</small></div>
+              <div><span class="av a1 cold">J</span><small>−15</small></div>
+            </div>
+            <div class="body">
+              <div class="need"><span>2 entries need your vote</span><span>Review ›</span></div>
+              <div class="post">
+                <div class="who"><span class="av a2">D</span><div><b>Dev → @Jonno</b><small>21:42 · Bar Lisboa</small></div></div>
+                <span class="stampx pend num">−5 PENDING</span>
+                <div class="photo"><svg viewBox="0 0 160 120" preserveAspectRatio="xMidYMid slice"><use href="#straw"/></svg></div>
+                <p style="margin-top:8px">Pink straw. In a mojito. On a bachelor trip.</p>
+                <div class="ln"><span>RULE: DRINKING FROM A STRAW</span><span>−5</span></div>
+                <div class="vote"><span class="dots"><i class="y"></i><i class="y"></i><i></i></span><small>2 of 3 confirms</small><span class="vb no">Reject</span><span class="vb ok">Confirm</span></div>
+                <div class="rx"><span class="on">😂 12</span><span>💀 4</span><span class="more">7 replies</span></div>
+              </div>
+              <div class="post">
+                <div class="who"><span class="av a4">T</span><div><b>Tommo → @Tommo (self)</b><small>21:15 · Confirmed 3/3</small></div></div>
+                <span class="stampx plus num">+10</span>
+                <div class="photo"><svg viewBox="0 0 160 120" preserveAspectRatio="xMidYMid slice"><use href="#toast"/></svg></div>
+              </div>
+            </div>
+            <span class="fab">+</span>
+            <div class="tabbar"><span class="on"><i></i>Feed</span><span><i></i>Board</span><span><i></i>Rules</span><span><i></i>Me</span></div>
+          </div></div>
+          <figcaption><b>Feed.</b> New entries show as pending with Confirm and Reject until 3 players have voted. Leaderboard strip on top (pink ring: top four, blue: forfeit zone).</figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="phone"><div class="screen rc">
+            <div class="sb"><span>9:41</span><span class="isl"></span><span>5G</span></div>
+            <div class="hd"><h5>‹ Receipt #014</h5><span>7 replies</span></div>
+            <div class="body">
+              <div class="post" style="margin-bottom:14px">
+                <div class="who"><span class="av a2">D</span><div><b>Dev → @Jonno</b><small>21:42 · Bar Lisboa</small></div></div>
+                <span class="stampx num" style="top:10px">−5</span>
+                <p>Pink straw. In a mojito. On a bachelor trip.</p>
+                <div class="ln"><span>CONFIRMED BY</span><span>Sully · Tommo · Kev</span></div>
+              </div>
+              <div class="reply"><span class="av a1">J</span><div class="bub"><b>Jonno</b>It was a stirrer. I was stirring.<br><small>21:44 · 😂 9</small></div></div>
+              <div class="reply nest"><span class="av a3">S</span><div class="bub"><b>Sully</b>Stirrers don't have liquid going UP them mate<br><small>21:45 · 😂 11</small></div></div>
+              <div class="reply nest"><span class="av a4">T</span><div class="bub"><b>Tommo</b>Exhibit B
+                <div class="att"><svg viewBox="0 0 160 120" preserveAspectRatio="xMidYMid slice"><use href="#straw"/></svg></div><small>21:47 · 💀 6</small></div></div>
+              <div class="reply"><span class="av a5">K</span><div class="bub"><b>Kev</b>Confirmed. Third vote, it counts now.<br><small>21:50 · ✅ entry confirmed</small></div></div>
+            </div>
+            <div class="composer"><span>Reply to Dev…</span><span>📎</span></div>
+          </div></div>
+          <figcaption><b>Thread.</b> The case gets argued in the replies, which can nest and carry their own photos. The post shows who confirmed it.</figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="phone"><div class="screen rc" style="background:#111">
+            <div class="sb" style="color:#fff"><span>9:41</span><span class="isl"></span><span>5G</span></div>
+            <div class="cam"><svg viewBox="0 0 160 120" preserveAspectRatio="xMidYMid slice"><use href="#straw"/></svg><span class="shut"></span></div>
+            <div class="sheet">
+              <span class="grab"></span>
+              <label>Who · yourself included</label>
+              <div class="people"><span class="av a1 on">J</span><span class="av a2">D</span><span class="av a3">S</span><span class="av a4">T</span><span class="av a5">K</span><span class="av a6">M</span></div>
+              <label>Rule</label>
+              <div class="search">str|</div>
+              <div class="rules"><span class="on">Straw <b>−5</b></span><span>Strawberry daiquiri <b>−10</b></span><span class="new">+ New rule</span></div>
+              <label>Points</label>
+              <div class="step"><span>−</span><b class="num">−5</b><span>+</span></div>
+              <div class="cap">COUNTS ONCE 3 PLAYERS CONFIRM</div>
+              <div class="go">Post receipt</div>
+            </div>
+          </div></div>
+          <figcaption><b>Quick add.</b> Camera opens first. Tag, search the rulebook, post. About 5 seconds.</figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="phone"><div class="screen rc" style="background:#111">
+            <div class="sb" style="color:#fff"><span>9:41</span><span class="isl"></span><span>5G</span></div>
+            <div class="cam" style="height:120px"><svg viewBox="0 0 160 120" preserveAspectRatio="xMidYMid slice"><use href="#toast"/></svg></div>
+            <div class="sheet">
+              <span class="grab"></span>
+              <label>Rule</label>
+              <div class="search">pineapple|</div>
+              <div class="nomatch">No rule matches "pineapple"</div>
+              <div class="create"><b>+ Create new rule</b></div>
+              <div class="field">Ordering pineapple on pizza</div>
+              <div class="seg"><span class="on">Penalty</span><span>Bonus</span></div>
+              <div class="step"><span>−</span><b class="num">−10</b><span>+</span></div>
+              <div class="cap">LIMIT ±25 · ORGANISER CAN EDIT LATER</div>
+              <div class="tog"><span>Add to the rulebook<small>Everyone can pick it next time</small></span><i></i></div>
+              <div class="go">Save rule &amp; post</div>
+            </div>
+          </div></div>
+          <figcaption><b>New rule.</b> No match in the rulebook? Create the rule right there. It's saved for everyone and used for this entry.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Recommendation ===== -->
+  <section>
+    <div class="pick">
+      <div>
+        <div class="eyebrow">Chosen direction</div>
+        <h2 style="margin-top:8px">Receipts, with the best bits borrowed</h2>
+        <p class="lede">Logging is as fast as Receipts makes it, but nothing counts until the group backs it up. Ideas from the other two concepts fill in the rest.</p>
+      </div>
+      <ol>
+        <li><b>Home</b><span>The Receipts feed with the faces strip, plus a Board tab that uses the Matchday league table.</span></li>
+        <li><b>Fairness</b><span>Every entry, including ones you log for yourself, needs 3 confirmations from other players before it counts. Taken from the Tribunal.</span></li>
+        <li><b>The groom</b><span>Penalties count double and he gets one overrule per day.</span></li>
+        <li><b>Daily rhythm</b><span>Matchday's nightly forfeit zone and MVP, sent as a push notification at 06:00.</span></li>
+        <li><b>The finale</b><span>End-of-trip awards and a recap page built from the stats and the most-reacted photos.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ===== Rulebook ===== -->
+  <section id="rulebook">
+    <div class="eyebrow">Draft content</div>
+    <h2 style="margin-top:8px">Starter rulebook</h2>
+    <p class="lede">The rulebook is shared and grows during the trip. It starts with these presets. When something happens that isn't covered, whoever logs it creates the rule on the spot, and from then on everyone can pick it from the list. The organiser can rename, re-price, merge duplicates, or retire rules at any time.</p>
+    <div class="rulebook">
+      <div>
+        <h3>Penalties <small>12 rules</small></h3>
+        <div class="rule minus"><span>Drinking from a straw</span><b>−5</b></div>
+        <div class="rule minus"><span>Ordering a non-alcoholic or "light" drink<small>Designated drivers exempt</small></span><b>−3</b></div>
+        <div class="rule minus"><span>Checking work email or Slack</span><b>−10</b></div>
+        <div class="rule minus"><span>Late to a group plan<small>Per 10 minutes</small></span><b>−5</b></div>
+        <div class="rule minus"><span>Asleep before midnight</span><b>−15</b></div>
+        <div class="rule minus"><span>Losing phone, wallet or room key</span><b>−20</b></div>
+        <div class="rule minus"><span>Saying the groom's fiancée's name before noon</span><b>−5</b></div>
+        <div class="rule minus"><span>Not wearing the trip shirt on shirt day</span><b>−10</b></div>
+        <div class="rule minus"><span>Taking a call over 5 minutes</span><b>−5</b></div>
+        <div class="rule minus"><span>Leaving a drink unfinished</span><b>−5</b></div>
+        <div class="rule minus"><span>Getting caught on your phone at dinner</span><b>−5</b></div>
+        <div class="rule minus"><span>Using the wrong player's name in the app<small>Self-inflicted admin errors</small></span><b>−2</b></div>
+      </div>
+      <div>
+        <h3>Bonuses <small>10 rules</small></h3>
+        <div class="rule plus"><span>Getting a stranger to toast the groom</span><b>+10</b></div>
+        <div class="rule plus"><span>Winning a group game or tournament</span><b>+15</b></div>
+        <div class="rule plus"><span>First up and bringing coffee for the group</span><b>+10</b></div>
+        <div class="rule plus"><span>Best dressed of the night<small>Group vote</small></span><b>+10</b></div>
+        <div class="rule plus"><span>Karaoke performance, full song</span><b>+10</b></div>
+        <div class="rule plus"><span>Talking the group out of a terrible idea</span><b>+10</b></div>
+        <div class="rule plus"><span>Group photo with a stranger who joins in</span><b>+5</b></div>
+        <div class="rule plus"><span>Remembering everyone's drink order</span><b>+5</b></div>
+        <div class="rule plus"><span>Completing a daily challenge</span><b>+20</b></div>
+        <div class="rule plus"><span>Groom's pick<small>Once per day, his choice</small></span><b>+15</b></div>
+      </div>
+    </div>
+    <div class="house">
+      <div><b>3 votes to count</b>Every entry starts as pending and counts once 3 players confirm it. Neither the person who logged it nor the person it's about can vote. 3 rejections remove it.</div>
+      <div><b>Self-claims allowed</b>Log a bonus for yourself, or own up to a penalty. Self-claims go through the same 3-vote check, so nobody can award themselves points.</div>
+      <div><b>Rules made on the spot</b>Anyone can create a rule while logging, worth −25 to +25. It joins the rulebook straight away, marked NEW with the creator's name. The entry it was made for still needs its 3 votes.</div>
+      <div><b>Groom multiplier</b>The groom's penalties count ×2. His bonuses count normally. Toggle it off if he complains enough.</div>
+    </div>
+  </section>
+
+  <!-- ===== Features ===== -->
+  <section>
+    <div class="eyebrow">Scope</div>
+    <h2 style="margin-top:8px">What goes in version one</h2>
+    <div class="feat">
+      <div>
+        <h3><span class="pill p-must">MUST</span> Before the trip</h3>
+        <ul>
+          <li>Join a trip with a 6-letter code, pick your name and face. No email signup.</li>
+          <li>Log points for a player by picking from the rulebook</li>
+          <li>Create a new rule while logging; it's added to the shared rulebook</li>
+          <li>Phone stays signed in after the first join</li>
+          <li>Attach photos and short videos as evidence</li>
+          <li>Comments with replies, plus emoji reactions</li>
+          <li>Live leaderboard that updates on every phone</li>
+          <li>Player history: every entry for and against them</li>
+          <li>Log points for yourself or anyone else</li>
+          <li>Confirm or reject votes: an entry counts at 3 confirms</li>
+          <li>"Needs your vote" list at the top of the feed</li>
+          <li>Push notification when someone logs against you or an entry needs your vote</li>
+        </ul>
+      </div>
+      <div>
+        <h3><span class="pill p-soon">NICE</span> If there's time</h3>
+        <ul>
+          <li>Daily standings, forfeit zone and MVP</li>
+          <li>Offline queue: log with no signal, sends when back online</li>
+          <li>Admin tools for the organiser: edit rules, fix mistakes, undo</li>
+          <li>Auto badges for repeat offences</li>
+          <li>Daily challenges posted each morning</li>
+        </ul>
+      </div>
+      <div>
+        <h3><span class="pill p-maybe">LATER</span> After the trip</h3>
+        <ul>
+          <li>End-of-trip awards ceremony screen</li>
+          <li>Recap page with top photos and final table</li>
+          <li>Export all photos as one album</li>
+          <li>Reuse the app for the next trip or the wedding weekend</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Tech ===== -->
+  <section>
+    <div class="eyebrow">Build draft</div>
+    <h2 style="margin-top:8px">How it gets built</h2>
+    <div class="tech">
+      <div>
+        <div class="stack">
+          <div><b>App</b><span>React Native with Expo and TypeScript. One codebase builds both the iPhone and Android app.</span></div>
+          <div><b>Backend</b><span>Supabase: a Postgres database, photo and video storage, and realtime updates so the leaderboard moves live. The free tier covers a group this size.</span></div>
+          <div><b>Sign-in</b><span>Anonymous sign-in plus a trip code and a 4-digit PIN. The phone stores a login token, so it stays signed in. More detail below.</span></div>
+          <div><b>Push</b><span>Expo push notifications, sent from a database trigger when an entry is filed.</span></div>
+          <div><b>Install</b><span>Android: share an install file directly. iPhone: TestFlight, which needs an Apple Developer account ($99 a year).</span></div>
+        </div>
+        <div class="note"><b>Cheaper iPhone option:</b> build it as an installable web app instead. Everyone adds it to their home screen from a link, it works on both platforms with no store and no $99 fee, and photo upload works. The trade-off is less reliable push notifications on iPhone.</div>
+      </div>
+      <pre aria-label="Database tables draft"><span class="c">-- core tables (draft)</span>
+<span class="k">trips</span>      id, name, join_code, starts_on, ends_on
+<span class="k">players</span>    id, trip_id, name, avatar_url, is_groom,
+           is_organiser, pin_hash
+<span class="k">devices</span>    auth_user_id, player_id, last_seen
+           <span class="c">-- one player can have 2+ phones</span>
+<span class="k">rules</span>      id, trip_id, title, points, kind,
+           created_by, created_at, is_preset,
+           archived
+           <span class="c">-- kind: penalty | bonus</span>
+<span class="k">entries</span>    id, trip_id, player_id, rule_id,
+           points, note, filed_by, created_at,
+           status  <span class="c">-- pending | confirmed | rejected</span>
+<span class="k">evidence</span>   id, entry_id, storage_path, type
+           <span class="c">-- photo | video</span>
+<span class="k">comments</span>   id, entry_id, parent_id, author_id,
+           body, created_at
+           <span class="c">-- parent_id set = it's a reply</span>
+<span class="k">reactions</span>  entry_id | comment_id, player_id, emoji
+<span class="k">votes</span>      entry_id, player_id, confirm (bool)
+           <span class="c">-- filer and subject can't vote
+           -- 3 confirms -> confirmed
+           -- 3 rejects  -> rejected</span>
+
+<span class="c">-- leaderboard = SUM(entries.points)
+-- WHERE status = 'confirmed'
+-- GROUP BY player_id</span></pre>
+    </div>
+    <h3 style="margin-top:40px">How phones stay signed in</h3>
+    <p class="lede" style="font-size:16px">Each phone keeps a login token instead of a hardware ID. On first open, the app signs in anonymously and receives a token, stored in the phone's encrypted keychain (iOS) or keystore (Android). Every later open uses that token, so there's no login screen and no email.</p>
+    <div class="idgrid">
+      <div><b>First open</b>Enter the trip code, tap your name, set a 4-digit PIN. The phone is now linked to your player.</div>
+      <div><b>New or wiped phone</b>Enter the trip code, tap your name, type your PIN. The new phone gets linked too. Forgot the PIN? The organiser resets it.</div>
+      <div class="no"><b>Why not a device ID</b>Phones don't hand apps a permanent hardware ID. The IDs they do give reset when the app is reinstalled, and Apple restricts tracking with them. The token plus PIN does the job without that.</div>
+    </div>
+    <div class="phases">
+      <div><b>Step 1</b><h4>Skeleton</h4>Trip code join, players, rulebook, log an entry, leaderboard.</div>
+      <div><b>Step 2</b><h4>Evidence</h4>Photo and video upload, the feed, comments, replies, reactions.</div>
+      <div><b>Step 3</b><h4>Voting</h4>Confirm and reject, the 3-vote rule, groom multiplier, push notifications.</div>
+      <div><b>Step 4</b><h4>Test run</h4>Install on everyone's phones a week out and play a practice round at the pub.</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">To decide</div>
+    <h2 style="margin-top:8px">Questions for the group</h2>
+    <ol class="qs">
+      <li>How many people? With 5 players, only 3 can vote on most entries, so all of them would have to confirm.</li>
+      <li>Do pending entries stay open forever, or expire (e.g. rejected if not confirmed within 24 hours)?</li>
+      <li>Does the groom's daily overrule skip the 3-vote check?</li>
+      <li>Is everyone on iPhone, Android, or a mix?</li>
+      <li>Is anyone happy to pay $99 for the Apple account, or go the web-app route?</li>
+      <li>Does the groom get a special role (judge, double penalties, both)?</li>
+      <li>What happens to the last-place finisher? The app can display the forfeit.</li>
+      <li>Trip dates? That sets the deadline for the test run.</li>
+      <li>Should the photos be private to the group forever, or deleted after a set time?</li>
+    </ol>
+  </section>
+
+</div>
+<footer><div class="wrap">Concept drafts for a private bachelor-trip app. All names, scores, and photos are illustrative.</div></footer>
+</body>
+</html>
