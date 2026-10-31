@@ -6,6 +6,7 @@
     "@expo/ui": "~58.0.25",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@supabase/supabase-js": "^2.118.0",
+    "@tanstack/react-query": "^5.105.0",
     "aes-js": "^3.1.2",
     "expo": "~58.0.21",
     "expo-constants": "~58.0.14",
@@ -63,6 +64,7 @@
   "private": true,
   "jest": {
     "preset": "jest-expo",
+    "resolver": "react-native-reanimated/jest/resolver",
     "setupFilesAfterEnv": [
       "<rootDir>/jest.setup.ts"
     ],

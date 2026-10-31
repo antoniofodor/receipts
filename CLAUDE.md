@@ -44,12 +44,13 @@ Nothing ships without tests, and every bug fix starts with a test that reproduce
 
 ```
 src/app/          routes only (expo-router)
-src/api/          Supabase client, encrypted session storage, typed calls per domain
+src/api/          Supabase client, encrypted session storage, typed calls per domain, query registry, realtime
 src/session/      which trip/player this phone is, cached on the device
-src/hooks/        shared screen logic (async actions, trip data loading)
+src/hooks/        shared screen logic (async actions, trip queries, live updates, voting)
 src/components/   UI building blocks; feature-specific parts in subfolders (join/, create-trip/)
 src/constants/    theme tokens and shared styles
 src/utils/        pure helpers
+src/test-utils/   test helpers and fixtures (not tests themselves)
 ```
 
 ## UI conventions
@@ -60,7 +61,17 @@ src/utils/        pure helpers
   - focused inputs scrolled above the keyboard, and drag-to-dismiss for the keyboard.
 - **Point steppers follow the number line.** `+` always moves toward positive (−5 → −4), and a penalty stays negative. Steppers work on the signed value, never on the magnitude.
 - **Number-pad inputs must close the keyboard themselves**, because the iPhone number pad has no Done key. Use `PinField`; any other numeric input closes the keyboard once its value is complete.
-- **Busy and error state for user actions** goes through `useAsyncAction`. **Data a tab shows** loads through `useTripQuery`, which reloads on focus and supports pull to refresh.
+- **Busy and error state for user actions** goes through `useAsyncAction`.
+- **Reading trip data:** every list is declared once in `src/api/trip-queries.ts` (name, fetch function, the live tables that refresh it) and read with `useTripQuery(tripQueries.x)`. TanStack Query caches it, so screens and the tab badge share one copy. Never fetch in a component with `useEffect`.
+- **Your own actions show instantly.** Never make the screen wait on a refetch after a write:
+  - Where the result is predictable (votes, a new rule), apply it to the cache first with `useOptimisticTripUpdate`, and undo it if the server refuses. Predictions use the same pure functions that mirror the SQL (`withMyVote`).
+  - Then invalidate the affected queries with `useInvalidateTripQueries`, without `await`, so the server's version replaces the guess. Live updates do the same for other phones.
+- **Lists never jump.**
+  - Rows in lists that change while you watch (feed cards, leaderboard rows, rules) are wrapped in `AnimatedListItem`, so they fade and slide.
+  - An item the user just acted on stays where it is until they leave the screen or pull to refresh (`useKeptWhileFocused`), even if the server now files it elsewhere.
+- **Queries scoped to one thing in a trip** (a player's entries) take a param: `useTripQuery(tripQueries.playerEntries, playerId)`. Invalidating or optimistically updating the query covers every param.
+- **Live updates** (`useTripLiveUpdates`, mounted once in the trip layout) refetch everything when Supabase reports the change feed is live. Changes made while connecting or offline are never delivered, so don't remove that.
+- **Rules about who can act** (who may vote, and so on) are decided by the database. The app mirrors them in pure functions (`src/utils/voting.ts`), checked in the same order as the SQL, so it never offers an action the database would refuse.
 - Colors, spacing and radii come from `src/constants/theme.ts` ("Receipts" look from concepts.html), never hard-coded. Points are shown with `formatPoints` (real minus sign).
 - The app is light-only (`userInterfaceStyle: "light"`).
 

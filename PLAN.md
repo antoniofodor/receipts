@@ -92,8 +92,9 @@ src/app/
   (app)/board.tsx      full leaderboard
   (app)/rules.tsx      rulebook list, search, add rule
   (app)/me.tsx         trip info, invite code, leave
+  player/[id].tsx      one player: standing, pending and confirmed entries
   log.tsx              (milestone 3) modal: photos, who, rule search or create, points, note
-  entry/[id].tsx       (milestone 4) photos, vote buttons and tally, comment thread
+  entry/[id].tsx       (milestones 5 and 6) photos full size, vote panel, comment thread
 ```
 
 ## Milestones
@@ -103,10 +104,10 @@ Each milestone ends with something you can try on your phone.
 | # | Milestone | Done when |
 |---|---|---|
 | 0 | **Setup.** *(done)* Create the Supabase project, scaffold the Expo app, install Expo Go on your phone, initialise git | The app runs on your phone through Expo Go and talks to Supabase |
-| 1 | **Database.** *(done: 20 tests passing)* Tables, RLS, RPCs, leaderboard view, preset rules | SQL test script passes: votes from the logger or subject are refused, the 3rd confirm flips to confirmed, the 3rd reject flips to rejected, a non-member can't read the trip |
+| 1 | **Database.** *(done)* Tables, RLS, RPCs, leaderboard view, preset rules | SQL test script passes: votes from the logger or subject are refused, the 3rd confirm flips to confirmed, the 3rd reject flips to rejected, a non-member can't read the trip |
 | 2 | **Identity.** *(done)* Create trip, join with code and PIN, session persists | Close and reopen the app: still signed in. A second phone joins with the PIN |
-| 3 | **Rules and logging.** *(built, needs testing on a phone)* Rulebook tab, log modal with rule search and inline rule creation, self-logging | You log an entry using a brand-new rule and the rule appears in the rulebook |
-| 4 | **Voting, feed and leaderboard.** Feed cards with states, vote buttons, banner, live leaderboard | Three test players confirm an entry and the leaderboard updates on another phone without refreshing |
+| 3 | **Rules and logging.** *(done)* Rulebook tab, log modal with rule search and inline rule creation, self-logging | You log an entry using a brand-new rule and the rule appears in the rulebook |
+| 4 | **Voting, feed and leaderboard.** *(done)* Feed cards with states, vote buttons, needs-your-vote section and badge, live leaderboard, player screen from the board | Three test players confirm an entry and the leaderboard updates on another phone without refreshing |
 | 5 | **Photos.** Camera or library, compression, upload, display in feed and detail | A photo taken on one phone shows on another within seconds |
 | 6 | **Comments.** Thread on entry detail, replies one level deep, live updates | A reply shows nested under its parent on both phones |
 | 7 | **Ship to friends.** Decide native vs web app, build, set up Maestro end-to-end flows for join, log and vote, install on everyone's phones, practice round | The whole group plays a test evening and the feedback is written down |

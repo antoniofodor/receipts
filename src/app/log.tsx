@@ -2,8 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { View } from 'react-native';
 
 import { createEntry } from '@/api/entries';
-import { getPlayers } from '@/api/players';
-import { getRules } from '@/api/rules';
+import { tripQueries } from '@/api/trip-queries';
 import { BackLink } from '@/components/back-link';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
@@ -21,17 +20,18 @@ import { NOTE_MAX_LENGTH } from '@/constants/game-rules';
 import { sharedStyles } from '@/constants/styles';
 import { useAsyncAction } from '@/hooks/use-async-action';
 import { useLogEntryForm } from '@/hooks/use-log-entry-form';
-import { useTripQuery } from '@/hooks/use-trip-query';
+import { useInvalidateTripQueries, useTripQuery } from '@/hooks/use-trip-query';
 import { useMembership } from '@/session/session-provider';
 import { formatPoints, pluralize } from '@/utils/format';
 
 export default function LogScreen() {
   const membership = useMembership();
   const params = useLocalSearchParams<LogRouteParams>();
-  const players = useTripQuery(getPlayers);
-  const rules = useTripQuery(getRules);
+  const players = useTripQuery(tripQueries.players);
+  const rules = useTripQuery(tripQueries.rules);
   const form = useLogEntryForm(ruleFromLogParams(params));
   const submit = useAsyncAction();
+  const invalidate = useInvalidateTripQueries();
 
   const subject = players.data?.find((player) => player.id === form.subjectId);
   const subjectLabel = subject?.id === membership.player_id ? 'yourself' : subject?.name;
@@ -39,6 +39,7 @@ export default function LogScreen() {
   function logEntry() {
     submit.run(async () => {
       await createEntry(form.toNewEntry(membership.trip_id));
+      invalidate([tripQueries.feed, tripQueries.playerEntries, tripQueries.leaderboard, tripQueries.rules]);
       router.back();
     });
   }

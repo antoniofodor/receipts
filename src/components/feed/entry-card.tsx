@@ -4,18 +4,20 @@ import type { Entry } from '@/api/entries';
 import { Avatar } from '@/components/avatar';
 import { Card } from '@/components/card';
 import { StatusPill } from '@/components/feed/status-pill';
+import { VotePanel } from '@/components/feed/vote-panel';
 import { MutedText } from '@/components/typography';
 import { sharedStyles } from '@/constants/styles';
 import { Colors, Fonts } from '@/constants/theme';
-import { formatPoints, pluralize, pointsColor } from '@/utils/format';
+import { formatPoints, pointsColor } from '@/utils/format';
 import { formatRelativeTime } from '@/utils/relative-time';
 
 type EntryCardProps = {
   entry: Entry;
+  myPlayerId: string;
   votesNeeded: number;
 };
 
-export function EntryCard({ entry, votesNeeded }: EntryCardProps) {
+export function EntryCard({ entry, myPlayerId, votesNeeded }: EntryCardProps) {
   const isSelfClaim = entry.filer.id === entry.subject.id;
   const byline = isSelfClaim ? `${entry.subject.name} (self-claim)` : `${entry.filer.name} → ${entry.subject.name}`;
 
@@ -31,12 +33,8 @@ export function EntryCard({ entry, votesNeeded }: EntryCardProps) {
       </View>
       <Text style={styles.rule}>{entry.rule.title}</Text>
       {entry.note ? <Text style={styles.note}>{entry.note}</Text> : null}
-      <View style={[sharedStyles.row, styles.footer]}>
-        <StatusPill status={entry.status} />
-        {entry.status === 'pending' ? (
-          <MutedText>Counts after {pluralize(votesNeeded, 'confirmation', 'confirmations')}</MutedText>
-        ) : null}
-      </View>
+      <StatusPill status={entry.status} />
+      <VotePanel entry={entry} myPlayerId={myPlayerId} votesNeeded={votesNeeded} />
     </Card>
   );
 }
@@ -47,5 +45,4 @@ const styles = StyleSheet.create({
   points: { fontFamily: Fonts.mono, fontSize: 24, fontWeight: '800' },
   rule: { fontFamily: Fonts.mono, fontSize: 13, letterSpacing: 0.5, color: Colors.ink, textTransform: 'uppercase' },
   note: { fontSize: 15, color: Colors.ink, lineHeight: 21 },
-  footer: { flexWrap: 'wrap' },
 });

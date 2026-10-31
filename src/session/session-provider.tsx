@@ -1,6 +1,7 @@
 import { createContext, use, useEffect, useState, type PropsWithChildren } from 'react';
 
 import { ensureSignedIn } from '@/api/auth';
+import { queryClient } from '@/api/query-client';
 import { getMyMembership, leaveTrip, type Membership } from '@/api/trips';
 import { readSavedMembership, saveMembership } from '@/session/session-storage';
 import { errorMessage } from '@/utils/errors';
@@ -73,6 +74,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
     await leaveTrip();
     await saveMembership(null);
     setMembership(null);
+    queryClient.clear();
   }
 
   return (

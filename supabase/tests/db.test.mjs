@@ -220,6 +220,25 @@ async function run() {
       assert.equal((await rows(`select 1 from public.rules where title = 'Ordering pineapple on pizza'`)).length, 1);
     });
 
+    await test('entries awaiting my vote skip ones I logged, about me, already voted on, or decided', async () => {
+      await as(users.dev);
+      const pending = await rpc('create_entry', { p_trip_id: shared.tripId, p_subject_id: playerId('Kev'), p_rule_id: await ruleId('Asleep before midnight') });
+      await as(users.tommo);
+      await rpc('cast_vote', { p_entry_id: pending, p_confirm: true });
+
+      const awaitingFor = async (user) => {
+        await as(users[user]);
+        return (await rows('select id from public.entries_awaiting_my_vote where trip_id = $1', [shared.tripId])).map((r) => r.id);
+      };
+      assert.deepEqual(await awaitingFor('sully'), [pending]);
+      assert.deepEqual(await awaitingFor('tommo'), [], 'already voted');
+      assert.deepEqual(await awaitingFor('dev'), [], 'logged it');
+      assert.deepEqual(await awaitingFor('kev'), [], 'about them');
+      assert.deepEqual(await awaitingFor('outsider'), [], 'not in the trip');
+      await as(users.dev);
+      await expectError(() => client.query('delete from public.entries_awaiting_my_vote'), 'permission denied');
+    });
+
     console.log('\nRules and points');
 
     await test('duplicate rule names are refused, ignoring case and spacing', async () => {
@@ -289,6 +308,11 @@ async function run() {
       assert.equal((await rows('select distinct trip_id from public.rules'))[0].trip_id, other.trip_id);
       await as(users.dev);
       assert.equal((await rows('select * from public.rules where trip_id = $1', [other.trip_id])).length, 0);
+    });
+
+    await test("one player's entries are indexed newest first", async () => {
+      const indexes = await client.query("select indexdef from pg_indexes where schemaname = 'public' and indexname = 'entries_subject_created_idx'");
+      assert.match(indexes.rows[0]?.indexdef ?? '', /\(subject_id, created_at DESC\)/);
     });
 
     await test('leave_trip unlinks the phone', async () => {

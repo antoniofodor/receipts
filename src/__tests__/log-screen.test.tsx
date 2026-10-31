@@ -1,8 +1,9 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { createEntry } from '@/api/entries';
 import LogScreen from '@/app/log';
+import { renderWithQueryClient } from '@/test-utils/render-with-query-client';
 
 jest.mock('expo-router', () => {
   const { useEffect } = jest.requireActual('react');
@@ -27,7 +28,12 @@ jest.mock('@/api/rules', () => ({
     { id: 'karaoke', title: 'Karaoke performance, full song', points: 10, is_preset: true, created_by: null, created_at: '' },
   ]),
 }));
-jest.mock('@/api/entries', () => ({ createEntry: jest.fn().mockResolvedValue('entry-id') }));
+jest.mock('@/api/entries', () => ({
+  createEntry: jest.fn().mockResolvedValue('entry-id'),
+  getRecentEntries: jest.fn(),
+  getEntriesAwaitingMyVote: jest.fn(),
+}));
+jest.mock('@/api/leaderboard', () => ({ getLeaderboard: jest.fn() }));
 
 const createEntryMock = jest.mocked(createEntry);
 
@@ -39,7 +45,7 @@ describe('Log points screen', () => {
   });
 
   it('logs an existing rule against another player', async () => {
-    await render(<LogScreen />);
+    await renderWithQueryClient(<LogScreen />);
     await fireEvent.press(await screen.findByLabelText('Jonno'));
     await fireEvent.press(screen.getByRole('radio', { name: 'Penalty' }));
     await fireEvent.changeText(screen.getByLabelText('Search rules'), 'straw');
@@ -58,7 +64,7 @@ describe('Log points screen', () => {
   });
 
   it('creates a brand-new rule on the spot for a self-claim, as the kind that was picked', async () => {
-    await render(<LogScreen />);
+    await renderWithQueryClient(<LogScreen />);
     await fireEvent.press(await screen.findByLabelText('Dev (you)'));
     await fireEvent.press(screen.getByRole('radio', { name: 'Bonus' }));
     await fireEvent.changeText(screen.getByLabelText('Search rules'), 'Carried the groom home');
@@ -76,7 +82,7 @@ describe('Log points screen', () => {
   });
 
   it('steps a new penalty along the number line', async () => {
-    await render(<LogScreen />);
+    await renderWithQueryClient(<LogScreen />);
     await fireEvent.press(await screen.findByLabelText('Dev (you)'));
     await fireEvent.press(screen.getByRole('radio', { name: 'Penalty' }));
     await fireEvent.changeText(screen.getByLabelText('Search rules'), 'Ordering pineapple on pizza');
@@ -87,7 +93,7 @@ describe('Log points screen', () => {
   });
 
   it('shows no rules until Penalty or Bonus is picked, then only that kind', async () => {
-    await render(<LogScreen />);
+    await renderWithQueryClient(<LogScreen />);
     await screen.findByLabelText('Jonno');
     expect(screen.queryByLabelText('Search rules')).toBeNull();
 
@@ -98,7 +104,7 @@ describe('Log points screen', () => {
   });
 
   it('points to the other kind instead of offering a duplicate name', async () => {
-    await render(<LogScreen />);
+    await renderWithQueryClient(<LogScreen />);
     await fireEvent.press(await screen.findByRole('radio', { name: 'Penalty' }));
     await fireEvent.changeText(screen.getByLabelText('Search rules'), 'karaoke performance, full song');
 
@@ -107,7 +113,7 @@ describe('Log points screen', () => {
   });
 
   it('does not offer to create a rule that already exists', async () => {
-    await render(<LogScreen />);
+    await renderWithQueryClient(<LogScreen />);
     await fireEvent.press(await screen.findByRole('radio', { name: 'Penalty' }));
     await fireEvent.changeText(screen.getByLabelText('Search rules'), 'drinking from a STRAW');
 
@@ -116,14 +122,14 @@ describe('Log points screen', () => {
 
   it('opens with the rule tapped in the rulebook already chosen', async () => {
     jest.mocked(useLocalSearchParams).mockReturnValue({ ruleId: 'karaoke', ruleTitle: 'Karaoke performance, full song', rulePoints: '10' });
-    await render(<LogScreen />);
+    await renderWithQueryClient(<LogScreen />);
     await fireEvent.press(await screen.findByLabelText('Jonno'));
 
     expect(screen.getByRole('button', { name: 'Log +10 for Jonno' })).toBeEnabled();
   });
 
   it('keeps the log button disabled until a player and rule are chosen', async () => {
-    await render(<LogScreen />);
+    await renderWithQueryClient(<LogScreen />);
     await screen.findByLabelText('Jonno');
 
     expect(screen.getByRole('button', { name: 'Log points' })).toBeDisabled();
