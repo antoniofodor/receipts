@@ -8,6 +8,7 @@ import { errorMessage } from '@/utils/errors';
 
 type TripQueryResult<T> = {
   data: T | null;
+  loading: boolean;
   error: string | null;
   refreshing: boolean;
   refresh: () => Promise<void>;
@@ -36,6 +37,7 @@ export function useTripQuery<T>(query: TripQuery<T, string | void>, param?: stri
 
   return {
     data: result.data ?? null,
+    loading: result.isPending,
     error: result.error ? errorMessage(result.error) : null,
     refreshing,
     refresh,
@@ -54,7 +56,7 @@ export function useInvalidateTripQueries() {
 export function useOptimisticTripUpdate() {
   const { trip_id: tripId } = useMembership();
   const queryClient = useQueryClient();
-  return async <T,>(query: TripQuery<T, never>, update: (data: T) => T) => {
+  return async <T>(query: TripQuery<T, never>, update: (data: T) => T) => {
     const queryKey = tripQueryKey(query, tripId);
     // A refetch already in flight would land afterwards and wipe out the update.
     await queryClient.cancelQueries({ queryKey });

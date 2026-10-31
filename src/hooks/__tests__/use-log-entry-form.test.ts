@@ -68,7 +68,27 @@ describe('useLogEntryForm', () => {
       rule: { newRuleTitle: 'Ordering pineapple on pizza', newRulePoints: -10 },
       points: -20,
       note: 'Twice',
+      photos: [],
     });
+  });
+
+  it('holds up to 3 photos and sends them with the entry', async () => {
+    const photo = (name: string) => ({ uri: `file:///${name}.jpg`, width: 1600, height: 1200 });
+    const { result } = await renderHook(() => useLogEntryForm());
+    await act(async () => result.current.selectSubject('dev'));
+    await act(async () => result.current.pickRule(straw));
+
+    await act(async () => result.current.addPhotos([photo('a'), photo('b')]));
+    await act(async () => result.current.addPhotos([photo('c'), photo('d')]));
+    expect(result.current.photos.map((each) => each.uri)).toEqual(['file:///a.jpg', 'file:///b.jpg', 'file:///c.jpg']);
+    expect(result.current.photosLeft).toBe(0);
+
+    await act(async () => result.current.removePhoto('file:///b.jpg'));
+    expect(result.current.toNewEntry('trip').photos.map((each) => each.uri)).toEqual([
+      'file:///a.jpg',
+      'file:///c.jpg',
+    ]);
+    expect(result.current.photosLeft).toBe(1);
   });
 
   it('refuses to build an incomplete entry', async () => {

@@ -25,6 +25,11 @@ async function rpc(fn, args = {}) {
   return rows[0].r;
 }
 
+// What a phone's upload to the evidence bucket leaves behind, as far as the database can tell.
+async function upload(path) {
+  await client.query(`insert into storage.objects (bucket_id, name) values ('evidence', $1)`, [path]);
+}
+
 async function rows(sql, params = []) {
   return (await client.query(sql, params)).rows;
 }
@@ -277,14 +282,65 @@ async function run() {
       await expectError(() => rpc('add_comment', { p_entry_id: shared.coffeeEntry, p_body: 'wrong entry', p_parent_id: top }), 'doesn\'t exist');
     });
 
-    await test('only the logger adds photos, at the right path, up to 3', async () => {
+    await test('only the logger adds photos, at the right path, once uploaded, up to 3', async () => {
       const path = (n) => `${shared.tripId}/${shared.strawEntry}/photo${n}.jpg`;
+      await as(users.dev);
+      for (const n of [1, 2, 3, 4, 5]) await upload(path(n));
       await as(users.jonno);
       await expectError(() => rpc('add_evidence', { p_entry_id: shared.strawEntry, p_storage_path: path(1) }), 'Only the person who logged');
       await as(users.dev);
       await expectError(() => rpc('add_evidence', { p_entry_id: shared.strawEntry, p_storage_path: `${shared.tripId}/${randomUUID()}/x.jpg` }), 'doesn\'t match');
+      await expectError(() => rpc('add_evidence', { p_entry_id: shared.strawEntry, p_storage_path: path(9) }), 'didn\'t finish uploading');
       for (const n of [1, 2, 3]) await rpc('add_evidence', { p_entry_id: shared.strawEntry, p_storage_path: path(n), p_width: 1600, p_height: 1200 });
       await expectError(() => rpc('add_evidence', { p_entry_id: shared.strawEntry, p_storage_path: path(4) }), 'up to 3');
+    });
+
+    await test('an entry and its photos are saved together', async () => {
+      await as(users.dev);
+      const entryId = randomUUID();
+      const photos = [1, 2].map((n) => ({ path: `${shared.tripId}/${entryId}/${n}.jpg`, width: 1600, height: 1200 }));
+      for (const photo of photos) await upload(photo.path);
+      const straw = await ruleId('Drinking from a straw');
+
+      const created = await rpc('create_entry', {
+        p_trip_id: shared.tripId, p_subject_id: playerId('Kev'), p_rule_id: straw, p_entry_id: entryId, p_photos: JSON.stringify(photos),
+      });
+
+      assert.equal(created, entryId);
+      const saved = await rows('select storage_path, width from public.evidence where entry_id = $1 order by storage_path', [entryId]);
+      assert.deepEqual(saved, photos.map((photo) => ({ storage_path: photo.path, width: 1600 })));
+    });
+
+    await test('a photo that never uploaded stops the whole entry from saving', async () => {
+      await as(users.dev);
+      const entryId = randomUUID();
+      const straw = await ruleId('Drinking from a straw');
+      await expectError(
+        () => rpc('create_entry', {
+          p_trip_id: shared.tripId, p_subject_id: playerId('Kev'), p_rule_id: straw, p_entry_id: entryId,
+          p_photos: JSON.stringify([{ path: `${shared.tripId}/${entryId}/missing.jpg`, width: 1, height: 1 }]),
+        }),
+        'didn\'t finish uploading',
+      );
+      assert.equal((await rows('select id from public.entries where id = $1', [entryId])).length, 0);
+    });
+
+    await test('an entry takes at most 3 photos, all in its own folder', async () => {
+      await as(users.dev);
+      const entryId = randomUUID();
+      const straw = await ruleId('Drinking from a straw');
+      const photo = (n, folder = entryId) => ({ path: `${shared.tripId}/${folder}/${n}.jpg`, width: 1, height: 1 });
+      const entry = (photos) => () => rpc('create_entry', {
+        p_trip_id: shared.tripId, p_subject_id: playerId('Kev'), p_rule_id: straw, p_entry_id: entryId, p_photos: JSON.stringify(photos),
+      });
+      await expectError(entry([1, 2, 3, 4].map((n) => photo(n))), 'up to 3 photos');
+      const elsewhere = photo(1, shared.strawEntry);
+      await expectError(entry([elsewhere]), 'doesn\'t match');
+    });
+
+    await test('only trip members can upload into a trip\'s photo folder', async () => {
+      await as(users.outsider);
+      await expectError(() => upload(`${shared.tripId}/${randomUUID()}/sneaky.jpg`), 'row-level security');
     });
 
     console.log('\nIsolation');

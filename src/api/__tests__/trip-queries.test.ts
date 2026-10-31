@@ -6,11 +6,21 @@ const names = (queries: { name: string }[]) => queries.map((query) => query.name
 
 describe('trip queries', () => {
   it('refreshes the entry lists and nothing else when a vote comes in', () => {
-    expect(names(queriesRefreshedBy('votes'))).toEqual(['awaiting-my-vote', 'feed', 'player-entries']);
+    expect(names(queriesRefreshedBy('votes'))).toEqual(['awaiting-my-vote', 'entry', 'feed', 'player-entries']);
   });
 
   it('refreshes the leaderboard when an entry changes status', () => {
-    expect(names(queriesRefreshedBy('entries'))).toEqual(['awaiting-my-vote', 'feed', 'leaderboard', 'player-entries']);
+    expect(names(queriesRefreshedBy('entries'))).toEqual([
+      'awaiting-my-vote',
+      'entry',
+      'feed',
+      'leaderboard',
+      'player-entries',
+    ]);
+  });
+
+  it('refreshes every entry view when a photo is attached', () => {
+    expect(names(queriesRefreshedBy('evidence'))).toEqual(['awaiting-my-vote', 'entry', 'feed', 'player-entries']);
   });
 
   it('refreshes the rulebook when a rule is added', () => {
@@ -18,7 +28,7 @@ describe('trip queries', () => {
   });
 
   it('subscribes to each live table once', () => {
-    expect([...liveTables].sort()).toEqual(['entries', 'rules', 'votes']);
+    expect([...liveTables].sort()).toEqual(['entries', 'evidence', 'rules', 'votes']);
   });
 
   it('keys a player-scoped query per player, under a prefix that refreshes them all', () => {

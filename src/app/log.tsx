@@ -2,11 +2,12 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { View } from 'react-native';
 
 import { createEntry } from '@/api/entries';
-import { tripQueries } from '@/api/trip-queries';
+import { entryListQueries, tripQueries } from '@/api/trip-queries';
 import { BackLink } from '@/components/back-link';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { ChosenRule } from '@/components/log/chosen-rule';
+import { PhotoPickerField } from '@/components/log/photo-picker-field';
 import { ruleFromLogParams, type LogRouteParams } from '@/components/log/log-route';
 import { PlayerPicker } from '@/components/log/player-picker';
 import { RuleKindButtons } from '@/components/log/rule-kind-buttons';
@@ -39,7 +40,7 @@ export default function LogScreen() {
   function logEntry() {
     submit.run(async () => {
       await createEntry(form.toNewEntry(membership.trip_id));
-      invalidate([tripQueries.feed, tripQueries.playerEntries, tripQueries.leaderboard, tripQueries.rules]);
+      invalidate([...entryListQueries, tripQueries.leaderboard, tripQueries.rules]);
       router.back();
     });
   }
@@ -115,6 +116,13 @@ export default function LogScreen() {
           <MutedText>Change it for repeat offences, like being 20 minutes late on a per-10-minutes rule.</MutedText>
         </Card>
       ) : null}
+
+      <PhotoPickerField
+        photos={form.photos}
+        photosLeft={form.photosLeft}
+        onAdd={form.addPhotos}
+        onRemove={form.removePhoto}
+      />
 
       <View style={sharedStyles.stack}>
         <Label>Note (optional)</Label>

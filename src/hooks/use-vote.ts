@@ -1,5 +1,5 @@
 import { castVote, type Entry } from '@/api/entries';
-import { tripQueries } from '@/api/trip-queries';
+import { entryListQueries, tripQueries } from '@/api/trip-queries';
 import { useAsyncAction } from '@/hooks/use-async-action';
 import { useInvalidateTripQueries, useOptimisticTripUpdate } from '@/hooks/use-trip-query';
 import { useMembership } from '@/session/session-provider';
@@ -13,14 +13,13 @@ export function useVote(entryId: string) {
 
   function vote(confirm: boolean) {
     const me = { id: membership.player_id, name: membership.player_name };
-    const applyMyVote = (entries: Entry[]) =>
-      entries.map((entry) => (entry.id === entryId ? withMyVote(entry, me, confirm, membership.vote_threshold) : entry));
+    const applyMyVote = (entry: Entry) =>
+      entry.id === entryId ? withMyVote(entry, me, confirm, membership.vote_threshold) : entry;
 
     run(async () => {
       const undos = await Promise.all([
-        updateOptimistically(tripQueries.feed, applyMyVote),
-        updateOptimistically(tripQueries.awaitingMyVote, applyMyVote),
-        updateOptimistically(tripQueries.playerEntries, applyMyVote),
+        ...entryListQueries.map((query) => updateOptimistically(query, (entries) => entries.map(applyMyVote))),
+        updateOptimistically(tripQueries.entry, (entry) => entry && applyMyVote(entry)),
       ]);
       try {
         await castVote(entryId, confirm);
@@ -28,7 +27,7 @@ export function useVote(entryId: string) {
         for (const undo of undos) undo();
         throw caught;
       } finally {
-        invalidate([tripQueries.feed, tripQueries.awaitingMyVote, tripQueries.playerEntries, tripQueries.leaderboard]);
+        invalidate([...entryListQueries, tripQueries.entry, tripQueries.leaderboard]);
       }
     });
   }

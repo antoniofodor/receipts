@@ -46,7 +46,9 @@ describe('codebase conventions (see CLAUDE.md)', () => {
   });
 
   it('no test files live inside src/app, where expo-router would treat them as routes', () => {
-    const testsInApp = sourceFiles(path.join(SRC, 'app')).filter((file) => /test/.test(path.basename(file)) || isTest(file));
+    const testsInApp = sourceFiles(path.join(SRC, 'app')).filter(
+      (file) => /test/.test(path.basename(file)) || isTest(file),
+    );
     expect(testsInApp.map(relative)).toEqual([]);
   });
 });

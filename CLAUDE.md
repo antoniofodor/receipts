@@ -38,7 +38,7 @@ Nothing ships without tests, and every bug fix starts with a test that reproduce
    - `src/__tests__/conventions.test.ts` enforces the rules in this file. When a new rule can be checked mechanically, add it there.
 3. **End-to-end tests**: Maestro flows in `.maestro/`, from milestone 7 when there are real builds (it can't drive Expo Go). They run on an Android emulator or EAS Workflows. Playwright isn't used because the app is native-only.
 
-`npm run check` (typecheck, lint, unit tests) and `npm run db:test` must pass before a change is done.
+`npm run check` (typecheck, lint, Prettier formatting, unit tests) and `npm run db:test` must pass before a change is done.
 
 ## Frontend layout
 
@@ -72,6 +72,10 @@ src/test-utils/   test helpers and fixtures (not tests themselves)
 - **Queries scoped to one thing in a trip** (a player's entries) take a param: `useTripQuery(tripQueries.playerEntries, playerId)`. Invalidating or optimistically updating the query covers every param.
 - **Live updates** (`useTripLiveUpdates`, mounted once in the trip layout) refetch everything when Supabase reports the change feed is live. Changes made while connecting or offline are never delivered, so don't remove that.
 - **Rules about who can act** (who may vote, and so on) are decided by the database. The app mirrors them in pure functions (`src/utils/voting.ts`), checked in the same order as the SQL, so it never offers an action the database would refuse.
+- **Photos**:
+  - Picked and compressed on the phone by `usePhotoPicker` (longest edge 1600px, JPEG).
+  - Uploaded by `createEntry` before the entry is saved; `create_entry` checks each file really is in storage.
+  - Shown through `EntryPhotos`, which caches by storage path because the signed links change on every fetch.
 - Colors, spacing and radii come from `src/constants/theme.ts` ("Receipts" look from concepts.html), never hard-coded. Points are shown with `formatPoints` (real minus sign).
 - The app is light-only (`userInterfaceStyle: "light"`).
 
@@ -89,5 +93,5 @@ src/test-utils/   test helpers and fixtures (not tests themselves)
 ## Commands
 
 - `npm start` runs the dev server. It loads `.env` first so `EXPO_TOKEN` is picked up. Use `npm run tunnel` if the phone can't reach the PC.
-- `npm run check` runs typecheck, lint and unit tests. `npm run test:watch` while working.
+- `npm run check` runs typecheck, lint, the Prettier format check and unit tests. `npm run format` fixes formatting. `npm run test:watch` while working.
 - `npm run db:migrate`, `npm run db:test`, `npm run db:status`.

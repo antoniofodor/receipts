@@ -37,7 +37,7 @@ Anything that doesn't serve those five is out of the MVP.
 - **Pending entries don't expire** in the MVP. They stay in "Needs your vote" until they reach 3 confirms or 3 rejects.
 - **Votes can't be changed** once cast. This keeps the logic simple.
 - **Rules join the rulebook immediately**, even if the entry they were created for is later rejected. The organiser can delete rules directly in the database until organiser tools exist.
-- **Photos only**, compressed on the phone to about 1600px JPEG before upload.
+- **Photos only**, compressed on the phone to about 1600px JPEG before upload. They upload first and the entry is saved with them in one step, so no phone ever sees an entry with its photos missing. An upload that succeeds before a failed save leaves an unused file behind; a cleanup job for those comes with the public release.
 - **Distribution is decided at milestone 7.** The same Expo codebase can ship as a native app (Android file, iPhone TestFlight) or as an installable web app.
 
 ## Tech stack
@@ -108,7 +108,7 @@ Each milestone ends with something you can try on your phone.
 | 2 | **Identity.** *(done)* Create trip, join with code and PIN, session persists | Close and reopen the app: still signed in. A second phone joins with the PIN |
 | 3 | **Rules and logging.** *(done)* Rulebook tab, log modal with rule search and inline rule creation, self-logging | You log an entry using a brand-new rule and the rule appears in the rulebook |
 | 4 | **Voting, feed and leaderboard.** *(done)* Feed cards with states, vote buttons, needs-your-vote section and badge, live leaderboard, player screen from the board | Three test players confirm an entry and the leaderboard updates on another phone without refreshing |
-| 5 | **Photos.** Camera or library, compression, upload, display in feed and detail | A photo taken on one phone shows on another within seconds |
+| 5 | **Photos.** *(done)* Camera or library, compression, upload, display in feed and detail | A photo taken on one phone shows on another within seconds |
 | 6 | **Comments.** Thread on entry detail, replies one level deep, live updates | A reply shows nested under its parent on both phones |
 | 7 | **Ship to friends.** Decide native vs web app, build, set up Maestro end-to-end flows for join, log and vote, install on everyone's phones, practice round | The whole group plays a test evening and the feedback is written down |
 

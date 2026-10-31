@@ -24,6 +24,7 @@ export function makeEntry(overrides: Partial<Entry> = {}): Entry {
     filer: players.dev,
     rule: { title: 'Drinking from a straw' },
     votes: [],
+    photos: [],
     ...overrides,
   };
 }

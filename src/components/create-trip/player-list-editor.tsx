@@ -21,7 +21,14 @@ type PlayerListEditorProps = {
   onToggleGroom: (rowId: string) => void;
 };
 
-export function PlayerListEditor({ rows, groomRowId, onRename, onRemove, onAdd, onToggleGroom }: PlayerListEditorProps) {
+export function PlayerListEditor({
+  rows,
+  groomRowId,
+  onRename,
+  onRemove,
+  onAdd,
+  onToggleGroom,
+}: PlayerListEditorProps) {
   return (
     <View style={sharedStyles.stack}>
       <Label>Players</Label>

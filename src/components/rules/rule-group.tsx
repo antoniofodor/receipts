@@ -1,11 +1,11 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import type { Rule } from "@/api/rules";
-import { AnimatedListItem } from "@/components/animated-list-item";
-import { Label } from "@/components/typography";
-import { sharedStyles } from "@/constants/styles";
-import { Colors, Fonts } from "@/constants/theme";
-import { formatPoints, pointsColor } from "@/utils/format";
+import type { Rule } from '@/api/rules';
+import { AnimatedListItem } from '@/components/animated-list-item';
+import { Label } from '@/components/typography';
+import { sharedStyles } from '@/constants/styles';
+import { Colors, Fonts } from '@/constants/theme';
+import { formatPoints, pointsColor } from '@/utils/format';
 
 type RuleGroupProps = {
   title: string;
@@ -27,23 +27,12 @@ export function RuleGroup({ title, rules, onPressRule }: RuleGroupProps) {
               accessibilityRole="button"
               accessibilityLabel={`Log ${rule.title}, ${formatPoints(rule.points)}`}
               onPress={() => onPressRule(rule)}
-              style={({ pressed }) => [
-                sharedStyles.listRow,
-                pressed && styles.pressed,
-              ]}
-            >
+              style={({ pressed }) => [sharedStyles.listRow, pressed && styles.pressed]}>
               <View style={styles.titleColumn}>
                 <Text style={styles.title}>{rule.title}</Text>
-                {rule.is_preset ? null : (
-                  <Text style={styles.addedTag}>ADDED ON THE TRIP</Text>
-                )}
+                {rule.is_preset ? null : <Text style={styles.addedTag}>ADDED ON THE TRIP</Text>}
               </View>
-              <Text
-                style={[
-                  sharedStyles.pointsText,
-                  { color: pointsColor(rule.points) },
-                ]}
-              >
+              <Text style={[sharedStyles.pointsText, { color: pointsColor(rule.points) }]}>
                 {formatPoints(rule.points)}
               </Text>
             </Pressable>

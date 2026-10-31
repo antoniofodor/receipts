@@ -1,8 +1,10 @@
 import { useState } from 'react';
 
 import type { NewEntry } from '@/api/entries';
+import type { LocalPhoto } from '@/api/photos';
 import type { Rule } from '@/api/rules';
 import { DEFAULT_NEW_RULE_MAGNITUDE } from '@/constants/game-rules';
+import { MAX_PHOTOS_PER_ENTRY } from '@/utils/photo-size';
 import { entryPointsRange, kindOfPoints, signedPoints, type RuleKind } from '@/utils/points';
 
 export type RuleSummary = Pick<Rule, 'id' | 'title' | 'points'>;
@@ -27,6 +29,7 @@ export function useLogEntryForm(initialRule: RuleSummary | null = null) {
   );
   const [pointsOverride, setPointsOverride] = useState<number | null>(null);
   const [note, setNote] = useState('');
+  const [photos, setPhotos] = useState<LocalPhoto[]>([]);
 
   const rulePoints = rulePointsOf(selection);
   const points = pointsOverride ?? rulePoints;
@@ -55,6 +58,7 @@ export function useLogEntryForm(initialRule: RuleSummary | null = null) {
           : { newRuleTitle: selection.title, newRulePoints: signedPoints(selection.kind, selection.magnitude) },
       points,
       note,
+      photos,
     };
   }
 
@@ -66,6 +70,8 @@ export function useLogEntryForm(initialRule: RuleSummary | null = null) {
     points,
     pointsRange,
     note,
+    photos,
+    photosLeft: MAX_PHOTOS_PER_ENTRY - photos.length,
     isComplete,
     selectSubject: setSubjectId,
     setRuleKind,
@@ -84,6 +90,8 @@ export function useLogEntryForm(initialRule: RuleSummary | null = null) {
     clearRule: () => changeSelection({ type: 'none' }),
     setPoints: setPointsOverride,
     setNote,
+    addPhotos: (added: LocalPhoto[]) => setPhotos((current) => [...current, ...added].slice(0, MAX_PHOTOS_PER_ENTRY)),
+    removePhoto: (uri: string) => setPhotos((current) => current.filter((photo) => photo.uri !== uri)),
     toNewEntry,
   };
 }

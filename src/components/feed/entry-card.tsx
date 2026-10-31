@@ -1,8 +1,10 @@
+import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { Entry } from '@/api/entries';
 import { Avatar } from '@/components/avatar';
 import { Card } from '@/components/card';
+import { EntryPhotos } from '@/components/feed/entry-photos';
 import { StatusPill } from '@/components/feed/status-pill';
 import { VotePanel } from '@/components/feed/vote-panel';
 import { MutedText } from '@/components/typography';
@@ -15,9 +17,10 @@ type EntryCardProps = {
   entry: Entry;
   myPlayerId: string;
   votesNeeded: number;
+  showPhotos?: boolean;
 };
 
-export function EntryCard({ entry, myPlayerId, votesNeeded }: EntryCardProps) {
+export function EntryCard({ entry, myPlayerId, votesNeeded, showPhotos = true }: EntryCardProps) {
   const isSelfClaim = entry.filer.id === entry.subject.id;
   const byline = isSelfClaim ? `${entry.subject.name} (self-claim)` : `${entry.filer.name} → ${entry.subject.name}`;
 
@@ -33,6 +36,13 @@ export function EntryCard({ entry, myPlayerId, votesNeeded }: EntryCardProps) {
       </View>
       <Text style={styles.rule}>{entry.rule.title}</Text>
       {entry.note ? <Text style={styles.note}>{entry.note}</Text> : null}
+      {showPhotos ? (
+        <EntryPhotos
+          photos={entry.photos}
+          layout="strip"
+          onPress={() => router.push({ pathname: '/entry/[id]', params: { id: entry.id } })}
+        />
+      ) : null}
       <StatusPill status={entry.status} />
       <VotePanel entry={entry} myPlayerId={myPlayerId} votesNeeded={votesNeeded} />
     </Card>

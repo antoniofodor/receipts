@@ -45,7 +45,14 @@ export function TripCodeField({ value, onChangeText, onSubmit }: TripCodeFieldPr
   return (
     <TextField
       value={value}
-      onChangeText={(text) => onChangeText(text.toUpperCase().replace(/[^A-Z]/g, '').slice(0, TRIP_CODE_LENGTH))}
+      onChangeText={(text) =>
+        onChangeText(
+          text
+            .toUpperCase()
+            .replace(/[^A-Z]/g, '')
+            .slice(0, TRIP_CODE_LENGTH),
+        )
+      }
       placeholder="ABCDEF"
       autoCapitalize="characters"
       autoCorrect={false}

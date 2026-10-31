@@ -15,7 +15,9 @@ type ScreenProps = PropsWithChildren<{
 export function Screen({ children, refreshing = false, onRefresh }: ScreenProps) {
   const insets = useSafeAreaInsets();
   const androidInsets =
-    Platform.OS === 'ios' ? null : { paddingTop: insets.top + Spacing.lg, paddingBottom: insets.bottom + ScreenBottomSpace };
+    Platform.OS === 'ios'
+      ? null
+      : { paddingTop: insets.top + Spacing.lg, paddingBottom: insets.bottom + ScreenBottomSpace };
 
   return (
     <ScrollView

@@ -30,7 +30,12 @@ jest.mock('@/session/session-provider', () => ({
 }));
 
 const needsVote = makeEntry({ id: 'needs-vote', rule: { title: 'Drinking from a straw' } });
-const alreadyDecided = makeEntry({ id: 'decided', status: 'confirmed', rule: { title: 'Asleep before midnight' }, subject: players.tommo });
+const alreadyDecided = makeEntry({
+  id: 'decided',
+  status: 'confirmed',
+  rule: { title: 'Asleep before midnight' },
+  subject: players.tommo,
+});
 
 describe('Feed screen', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -100,4 +105,3 @@ describe('Feed screen', () => {
     expect(screen.getByRole('button', { name: 'Confirm' })).toBeTruthy();
   });
 });
-

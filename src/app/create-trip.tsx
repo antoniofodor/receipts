@@ -37,13 +37,14 @@ export default function CreateTripScreen() {
   const [requestedVoteThreshold, setRequestedVoteThreshold] = useState(DEFAULT_VOTE_THRESHOLD);
   const [pin, setPin] = useState('');
 
-  const namedRows = rows
-    .map((row) => ({ ...row, name: row.name.trim() }))
-    .filter((row) => row.name.length > 0);
+  const namedRows = rows.map((row) => ({ ...row, name: row.name.trim() })).filter((row) => row.name.length > 0);
   const organiserName = namedRows.find((row) => row.id === ORGANISER_ROW_ID)?.name ?? '';
   const voteThreshold = Math.min(requestedVoteThreshold, maxVoteThreshold(namedRows.length));
   const canCreate =
-    tripName.trim().length > 0 && organiserName.length > 0 && namedRows.length >= MIN_PLAYERS && pin.length === PIN_LENGTH;
+    tripName.trim().length > 0 &&
+    organiserName.length > 0 &&
+    namedRows.length >= MIN_PLAYERS &&
+    pin.length === PIN_LENGTH;
 
   function addRow() {
     setRows((current) => [...current, { id: `player-${nextRowNumber}`, name: '' }]);
@@ -76,11 +77,19 @@ export default function CreateTripScreen() {
   return (
     <Screen>
       <BackLink onPress={() => router.back()} />
-      <Title subtitle="You'll get a code to send to the group. Everyone joins by tapping their name.">Create a trip</Title>
+      <Title subtitle="You'll get a code to send to the group. Everyone joins by tapping their name.">
+        Create a trip
+      </Title>
 
       <View style={sharedStyles.stack}>
         <Label>Trip name</Label>
-        <TextField value={tripName} onChangeText={setTripName} placeholder="Lisbon 2026" maxLength={60} accessibilityLabel="Trip name" />
+        <TextField
+          value={tripName}
+          onChangeText={setTripName}
+          placeholder="Lisbon 2026"
+          maxLength={60}
+          accessibilityLabel="Trip name"
+        />
       </View>
 
       <PlayerListEditor
@@ -103,7 +112,10 @@ export default function CreateTripScreen() {
       <ErrorText>{error}</ErrorText>
       <Button title="Create trip" onPress={create} loading={busy} disabled={!canCreate} />
       {canCreate ? null : (
-        <MutedText style={{ textAlign: 'center' }}>{`Needs a trip name, your name, at least ${MIN_PLAYERS} players and a PIN.`}</MutedText>
+        <MutedText
+          style={{
+            textAlign: 'center',
+          }}>{`Needs a trip name, your name, at least ${MIN_PLAYERS} players and a PIN.`}</MutedText>
       )}
     </Screen>
   );

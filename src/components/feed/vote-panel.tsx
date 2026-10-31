@@ -63,7 +63,12 @@ export function VotePanel({ entry, myPlayerId, votesNeeded }: VotePanelProps) {
 }
 
 const styles = StyleSheet.create({
-  panel: { gap: Spacing.sm, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: Colors.line, paddingTop: Spacing.md },
+  panel: {
+    gap: Spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.line,
+    paddingTop: Spacing.md,
+  },
   dot: { width: 18, height: 8, borderRadius: Radius.pill, backgroundColor: Colors.line },
   dotFilled: { backgroundColor: Colors.plus },
   buttons: { flexDirection: 'row', gap: Spacing.sm },

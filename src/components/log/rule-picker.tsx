@@ -64,7 +64,9 @@ export function RulePicker({ rules, kind, query, onChangeQuery, onPickRule, onCr
               accessibilityLabel={`Create rule ${newTitle}`}
               onPress={() => onCreateRule(newTitle)}
               style={({ pressed }) => [sharedStyles.listRow, styles.createRow, pressed && styles.pressed]}>
-              <Text style={styles.createText}>+ Create {kind} &ldquo;{newTitle}&rdquo;</Text>
+              <Text style={styles.createText}>
+                + Create {kind} &ldquo;{newTitle}&rdquo;
+              </Text>
             </Pressable>
           ) : null}
         </View>

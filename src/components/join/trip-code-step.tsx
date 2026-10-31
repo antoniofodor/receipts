@@ -18,7 +18,15 @@ type TripCodeStepProps = {
   error: string | null;
 };
 
-export function TripCodeStep({ code, onChangeCode, onFindTrip, onCreateTrip, lastTrip, busy, error }: TripCodeStepProps) {
+export function TripCodeStep({
+  code,
+  onChangeCode,
+  onFindTrip,
+  onCreateTrip,
+  lastTrip,
+  busy,
+  error,
+}: TripCodeStepProps) {
   return (
     <>
       <View style={styles.hero}>
@@ -42,7 +50,12 @@ export function TripCodeStep({ code, onChangeCode, onFindTrip, onCreateTrip, las
         <TripCodeField value={code} onChangeText={onChangeCode} onSubmit={() => onFindTrip(code)} />
       </View>
       <ErrorText>{error}</ErrorText>
-      <Button title="Find trip" onPress={() => onFindTrip(code)} loading={busy} disabled={code.length !== TRIP_CODE_LENGTH} />
+      <Button
+        title="Find trip"
+        onPress={() => onFindTrip(code)}
+        loading={busy}
+        disabled={code.length !== TRIP_CODE_LENGTH}
+      />
 
       <View style={styles.divider} />
       <MutedText style={styles.centered}>Organising the trip?</MutedText>

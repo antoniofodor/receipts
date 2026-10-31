@@ -21,7 +21,11 @@ export function Button({ title, onPress, variant = 'primary', loading = false, d
       onPress={onPress}
       disabled={inactive}
       style={({ pressed }) => [styles.button, styles[variant], inactive && styles.inactive, pressed && styles.pressed]}>
-      {loading ? <ActivityIndicator color={textColor} /> : <Text style={[styles.text, { color: textColor }]}>{title}</Text>}
+      {loading ? (
+        <ActivityIndicator color={textColor} />
+      ) : (
+        <Text style={[styles.text, { color: textColor }]}>{title}</Text>
+      )}
     </Pressable>
   );
 }

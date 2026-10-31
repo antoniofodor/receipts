@@ -26,13 +26,23 @@ async function renderLiveUpdates() {
   );
   const hook = await renderHook(() => useTripLiveUpdates(), { wrapper });
   const invalidatedKeys = () => invalidate.mock.calls.map(([filters]) => filters?.queryKey);
-  return { hook, emit: (table: LiveTable) => handlers.onChange(table), goLive: () => handlers.onLive(), invalidatedKeys, unsubscribe };
+  return {
+    hook,
+    emit: (table: LiveTable) => handlers.onChange(table),
+    goLive: () => handlers.onLive(),
+    invalidatedKeys,
+    unsubscribe,
+  };
 }
 
 describe('useTripLiveUpdates', () => {
   it('subscribes to this trip only', async () => {
     await renderLiveUpdates();
-    expect(subscribeMock).toHaveBeenCalledWith('trip-1', expect.arrayContaining(['entries', 'votes', 'rules']), expect.any(Object));
+    expect(subscribeMock).toHaveBeenCalledWith(
+      'trip-1',
+      expect.arrayContaining(['entries', 'votes', 'rules']),
+      expect.any(Object),
+    );
   });
 
   it('refreshes the queries affected by a change', async () => {
@@ -44,6 +54,7 @@ describe('useTripLiveUpdates', () => {
       ['feed', 'trip-1'],
       ['awaiting-my-vote', 'trip-1'],
       ['player-entries', 'trip-1'],
+      ['entry', 'trip-1'],
     ]);
   });
 
@@ -56,6 +67,7 @@ describe('useTripLiveUpdates', () => {
       ['feed', 'trip-1'],
       ['awaiting-my-vote', 'trip-1'],
       ['player-entries', 'trip-1'],
+      ['entry', 'trip-1'],
       ['leaderboard', 'trip-1'],
       ['rules', 'trip-1'],
     ]);

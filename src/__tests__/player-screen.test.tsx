@@ -37,7 +37,12 @@ describe('Player screen', () => {
     jest.mocked(getLeaderboard).mockResolvedValue([tommoRow]);
     jest.mocked(getPlayerEntries).mockResolvedValue([
       makeEntry({ id: 'pending', subject: players.tommo, rule: { title: 'Asleep before midnight' } }),
-      makeEntry({ id: 'confirmed', subject: players.tommo, status: 'confirmed', rule: { title: 'Drinking from a straw' } }),
+      makeEntry({
+        id: 'confirmed',
+        subject: players.tommo,
+        status: 'confirmed',
+        rule: { title: 'Drinking from a straw' },
+      }),
     ]);
 
     await renderWithQueryClient(<PlayerScreen />);

@@ -36,7 +36,9 @@ export function LeaderboardList({ rows, myPlayerId, onPressPlayer }: Leaderboard
                 </Text>
                 {row.pending_count > 0 ? <MutedText>{row.pending_count} pending</MutedText> : null}
               </View>
-              <Text style={[sharedStyles.pointsText, { color: pointsColor(row.points) }]}>{formatPoints(row.points)}</Text>
+              <Text style={[sharedStyles.pointsText, { color: pointsColor(row.points) }]}>
+                {formatPoints(row.points)}
+              </Text>
               <Text style={styles.chevron}>›</Text>
             </Pressable>
           </AnimatedListItem>

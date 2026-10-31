@@ -25,7 +25,14 @@ jest.mock('@/api/players', () => ({
 jest.mock('@/api/rules', () => ({
   getRules: jest.fn().mockResolvedValue([
     { id: 'straw', title: 'Drinking from a straw', points: -5, is_preset: true, created_by: null, created_at: '' },
-    { id: 'karaoke', title: 'Karaoke performance, full song', points: 10, is_preset: true, created_by: null, created_at: '' },
+    {
+      id: 'karaoke',
+      title: 'Karaoke performance, full song',
+      points: 10,
+      is_preset: true,
+      created_by: null,
+      created_at: '',
+    },
   ]),
 }));
 jest.mock('@/api/entries', () => ({
@@ -60,6 +67,7 @@ describe('Log points screen', () => {
       rule: { existingRuleId: 'straw' },
       points: -5,
       note: '',
+      photos: [],
     });
   });
 
@@ -121,7 +129,9 @@ describe('Log points screen', () => {
   });
 
   it('opens with the rule tapped in the rulebook already chosen', async () => {
-    jest.mocked(useLocalSearchParams).mockReturnValue({ ruleId: 'karaoke', ruleTitle: 'Karaoke performance, full song', rulePoints: '10' });
+    jest
+      .mocked(useLocalSearchParams)
+      .mockReturnValue({ ruleId: 'karaoke', ruleTitle: 'Karaoke performance, full song', rulePoints: '10' });
     await renderWithQueryClient(<LogScreen />);
     await fireEvent.press(await screen.findByLabelText('Jonno'));
 
