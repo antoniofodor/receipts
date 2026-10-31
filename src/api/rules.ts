@@ -1,4 +1,4 @@
-import { unwrap } from '@/api/request';
+import { callFunction, unwrap } from '@/api/request';
 import { supabase } from '@/api/supabase-client';
 
 export type Rule = {
@@ -21,3 +21,6 @@ export async function getRules(tripId: string) {
       .order('title'),
   );
 }
+
+export const createRule = (tripId: string, title: string, points: number) =>
+  callFunction<string>('create_rule', { p_trip_id: tripId, p_title: title, p_points: points });

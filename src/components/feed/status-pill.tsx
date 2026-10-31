@@ -1,0 +1,24 @@
+import { StyleSheet, Text, View } from 'react-native';
+
+import type { EntryStatus } from '@/api/entries';
+import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
+
+const STATUS_STYLE: Record<EntryStatus, { label: string; color: string }> = {
+  pending: { label: 'PENDING', color: Colors.muted },
+  confirmed: { label: 'CONFIRMED', color: Colors.plus },
+  rejected: { label: 'REJECTED', color: Colors.minus },
+};
+
+export function StatusPill({ status }: { status: EntryStatus }) {
+  const { label, color } = STATUS_STYLE[status];
+  return (
+    <View style={[styles.pill, { borderColor: color }]}>
+      <Text style={[styles.text, { color }]}>{label}</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  pill: { borderWidth: 1.5, borderRadius: Radius.sm, paddingHorizontal: Spacing.sm, paddingVertical: 2 },
+  text: { fontFamily: Fonts.mono, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+});

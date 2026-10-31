@@ -8,13 +8,14 @@ type NumberStepperProps = {
   max: number;
   onChange: (value: number) => void;
   label: string;
+  format?: (value: number) => string;
 };
 
-export function NumberStepper({ value, min, max, onChange, label }: NumberStepperProps) {
+export function NumberStepper({ value, min, max, onChange, label, format = String }: NumberStepperProps) {
   return (
-    <View style={styles.row} accessibilityLabel={`${label}: ${value}`}>
+    <View style={styles.row} accessibilityLabel={`${label}: ${format(value)}`}>
       <StepButton symbol={'−'} label={`Decrease ${label}`} disabled={value <= min} onPress={() => onChange(value - 1)} />
-      <Text style={styles.value}>{value}</Text>
+      <Text style={styles.value}>{format(value)}</Text>
       <StepButton symbol="+" label={`Increase ${label}`} disabled={value >= max} onPress={() => onChange(value + 1)} />
     </View>
   );

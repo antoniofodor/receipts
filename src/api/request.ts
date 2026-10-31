@@ -1,7 +1,5 @@
 import { supabase } from '@/api/supabase-client';
 
-type SupabaseResult<T> = { data: T | null; error: { message: string } | null };
-
 const NETWORK_ERROR = /network request failed|failed to fetch|fetch failed/i;
 
 // Database functions raise plain-sentence errors meant for users; only network failures need rewording.
@@ -9,7 +7,9 @@ export function toUserMessage(message: string) {
   return NETWORK_ERROR.test(message) ? 'No connection. Check your signal and try again.' : message;
 }
 
-export function unwrap<T>({ data, error }: SupabaseResult<T>): T {
+// Without generated database types supabase-js can't infer row shapes (embedded rows come back
+// typed as arrays), so each query in src/api declares its row type here.
+export function unwrap<T>({ data, error }: { data: unknown; error: { message: string } | null }): T {
   if (error) throw new Error(toUserMessage(error.message));
   return data as T;
 }

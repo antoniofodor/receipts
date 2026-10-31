@@ -2,10 +2,12 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { Colors } from '@/constants/theme';
 
-export function BackLink({ onPress }: { onPress: () => void }) {
+export function BackLink({ onPress, label = 'Back' }: { onPress: () => void; label?: string }) {
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onPress} hitSlop={12}>
-      <Text style={styles.text}>{'‹'} Back</Text>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={12}>
+      <Text style={styles.text}>
+        {'‹'} {label}
+      </Text>
     </Pressable>
   );
 }

@@ -37,6 +37,7 @@ function RootNavigator() {
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.background } }}>
       <Stack.Protected guard={isInTrip}>
         <Stack.Screen name="(app)" />
+        <Stack.Screen name="log" options={{ presentation: 'modal' }} />
       </Stack.Protected>
       <Stack.Protected guard={!isInTrip}>
         <Stack.Screen name="join" />

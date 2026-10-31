@@ -58,6 +58,7 @@ src/utils/        pure helpers
   - room to scroll the last item clear of the tab bar and home indicator, plus `ScreenBottomSpace`;
   - safe-area insets on both platforms;
   - focused inputs scrolled above the keyboard, and drag-to-dismiss for the keyboard.
+- **Point steppers follow the number line.** `+` always moves toward positive (−5 → −4), and a penalty stays negative. Steppers work on the signed value, never on the magnitude.
 - **Number-pad inputs must close the keyboard themselves**, because the iPhone number pad has no Done key. Use `PinField`; any other numeric input closes the keyboard once its value is complete.
 - **Busy and error state for user actions** goes through `useAsyncAction`. **Data a tab shows** loads through `useTripQuery`, which reloads on focus and supports pull to refresh.
 - Colors, spacing and radii come from `src/constants/theme.ts` ("Receipts" look from concepts.html), never hard-coded. Points are shown with `formatPoints` (real minus sign).
