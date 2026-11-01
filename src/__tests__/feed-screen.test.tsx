@@ -70,8 +70,8 @@ describe('Feed screen', () => {
 
     await fireEvent.press(await screen.findByRole('button', { name: 'Confirm' }));
 
-    expect(await screen.findByText('You confirmed this')).toBeTruthy();
-    expect(screen.getByText('Confirmed by Sully')).toBeTruthy();
+    expect(await screen.findByLabelText('You confirmed this')).toBeTruthy();
+    expect(screen.getByLabelText('1 of 3 confirms')).toBeTruthy();
     expect(screen.getByText('Needs your vote')).toBeTruthy();
   });
 
@@ -87,7 +87,7 @@ describe('Feed screen', () => {
     await fireEvent.press(await screen.findByRole('button', { name: 'Confirm' }));
 
     await waitFor(() => expect(getEntriesAwaitingMyVote).toHaveBeenCalledTimes(2));
-    expect(await screen.findByText('You confirmed this')).toBeTruthy();
+    expect(await screen.findByLabelText('You confirmed this')).toBeTruthy();
     expect(screen.getByText('Needs your vote')).toBeTruthy();
     expect(screen.queryByText('Recent')).toBeNull();
   });
@@ -101,7 +101,7 @@ describe('Feed screen', () => {
     await fireEvent.press(await screen.findByRole('button', { name: 'Confirm' }));
 
     expect(await screen.findByText('Voting on this entry has closed')).toBeTruthy();
-    expect(screen.queryByText('You confirmed this')).toBeNull();
+    expect(screen.queryByLabelText('You confirmed this')).toBeNull();
     expect(screen.getByRole('button', { name: 'Confirm' })).toBeTruthy();
   });
 });

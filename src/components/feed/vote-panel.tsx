@@ -1,11 +1,11 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { Entry } from '@/api/entries';
-import { Button } from '@/components/button';
-import { ErrorText, MutedText } from '@/components/typography';
+import { VoteButtons } from '@/components/feed/vote-buttons';
+import { VoteTallyDots } from '@/components/feed/vote-tally-dots';
+import { MutedText } from '@/components/typography';
 import { sharedStyles } from '@/constants/styles';
-import { Colors, Radius, Spacing } from '@/constants/theme';
-import { useVote } from '@/hooks/use-vote';
+import { Colors, Spacing } from '@/constants/theme';
 import { myVotingState, tallyVotes } from '@/utils/voting';
 
 type VotePanelProps = {
@@ -19,18 +19,16 @@ const SITTING_OUT_MESSAGES: Record<'logged-it' | 'about-me', string> = {
   'about-me': "This one's about you. The others decide.",
 };
 
+// The full voting story, for the entry screen. Cards in lists show the compact EntryCardFooter instead.
 export function VotePanel({ entry, myPlayerId, votesNeeded }: VotePanelProps) {
-  const { vote, busy, error } = useVote(entry.id);
   const state = myVotingState(entry, myPlayerId);
   const { confirmedBy, rejectedBy } = tallyVotes(entry.votes);
 
   return (
     <View style={styles.panel}>
       {entry.status === 'pending' ? (
-        <View style={sharedStyles.row} accessibilityLabel={`${confirmedBy.length} of ${votesNeeded} confirms`}>
-          {Array.from({ length: votesNeeded }, (_, index) => (
-            <View key={index} style={[styles.dot, index < confirmedBy.length && styles.dotFilled]} />
-          ))}
+        <View style={sharedStyles.row}>
+          <VoteTallyDots confirms={confirmedBy.length} votesNeeded={votesNeeded} />
           <MutedText>
             {confirmedBy.length} of {votesNeeded} confirms
             {rejectedBy.length > 0 ? ` · ${rejectedBy.length} of ${votesNeeded} rejects` : ''}
@@ -41,23 +39,13 @@ export function VotePanel({ entry, myPlayerId, votesNeeded }: VotePanelProps) {
       {confirmedBy.length > 0 ? <MutedText>Confirmed by {confirmedBy.join(', ')}</MutedText> : null}
       {rejectedBy.length > 0 ? <MutedText>Rejected by {rejectedBy.join(', ')}</MutedText> : null}
 
-      {state.kind === 'can-vote' ? (
-        <View style={styles.buttons}>
-          <View style={styles.buttonSlot}>
-            <Button title="Reject" variant="secondary" onPress={() => vote(false)} disabled={busy} />
-          </View>
-          <View style={styles.buttonSlot}>
-            <Button title="Confirm" onPress={() => vote(true)} loading={busy} />
-          </View>
-        </View>
-      ) : null}
+      {state.kind === 'can-vote' ? <VoteButtons entryId={entry.id} /> : null}
       {state.kind === 'voted' ? (
         <Text style={styles.myVote}>{state.confirmed ? 'You confirmed this' : 'You rejected this'}</Text>
       ) : null}
       {state.kind === 'logged-it' || state.kind === 'about-me' ? (
         <MutedText>{SITTING_OUT_MESSAGES[state.kind]}</MutedText>
       ) : null}
-      <ErrorText>{error}</ErrorText>
     </View>
   );
 }
@@ -69,9 +57,5 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.line,
     paddingTop: Spacing.md,
   },
-  dot: { width: 18, height: 8, borderRadius: Radius.pill, backgroundColor: Colors.line },
-  dotFilled: { backgroundColor: Colors.plus },
-  buttons: { flexDirection: 'row', gap: Spacing.sm },
-  buttonSlot: { flex: 1 },
   myVote: { fontSize: 14, fontWeight: '700', color: Colors.ink },
 });

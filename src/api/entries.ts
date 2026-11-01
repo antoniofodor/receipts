@@ -21,9 +21,10 @@ export type Entry = {
   rule: { title: string };
   votes: Vote[];
   photos: Photo[];
+  commentCount: number;
 };
 
-type EntryRow = Omit<Entry, 'photos'> & { evidence: StoredPhoto[] };
+type EntryRow = Omit<Entry, 'photos' | 'commentCount'> & { evidence: StoredPhoto[]; comments: { count: number }[] };
 
 export type RuleChoice = { existingRuleId: string } | { newRuleTitle: string; newRulePoints: number };
 
@@ -45,11 +46,16 @@ const ENTRY_COLUMNS = `id, points, note, status, created_at,
   filer:players!entries_filed_by_fkey(id, name, color),
   rule:rules!entries_rule_id_fkey(title),
   votes:votes!votes_entry_id_fkey(confirm, voter:players!votes_voter_id_fkey(id, name)),
-  evidence:evidence!evidence_entry_id_fkey(id, storage_path, width, height, created_at)`;
+  evidence:evidence!evidence_entry_id_fkey(id, storage_path, width, height, created_at),
+  comments:comments!comments_entry_id_fkey(count)`;
 
 async function withPhotos(rows: EntryRow[]): Promise<Entry[]> {
   const links = await photoLinks(rows.flatMap((row) => row.evidence.map((photo) => photo.storage_path)));
-  return rows.map(({ evidence, ...entry }) => ({ ...entry, photos: toPhotos(evidence, links) }));
+  return rows.map(({ evidence, comments, ...entry }) => ({
+    ...entry,
+    photos: toPhotos(evidence, links),
+    commentCount: comments[0]?.count ?? 0,
+  }));
 }
 
 // Photos go up first, into the folder of an entry id picked here, then the entry and its photos are saved in one

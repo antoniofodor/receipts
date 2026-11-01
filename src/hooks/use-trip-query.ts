@@ -51,13 +51,13 @@ export function useInvalidateTripQueries() {
     Promise.all(queries.map((query) => queryClient.invalidateQueries({ queryKey: tripQueryKey(query, tripId) })));
 }
 
-// Shows a write on screen before the server answers, in every cached copy of the query (all players, for
-// player-scoped ones). Returns an undo for when the server refuses it.
+// Shows a write on screen before the server answers. Without a param it updates every cached copy of the query
+// (each player's entries, say); with one, only that copy. Returns an undo for when the server refuses it.
 export function useOptimisticTripUpdate() {
   const { trip_id: tripId } = useMembership();
   const queryClient = useQueryClient();
-  return async <T>(query: TripQuery<T, never>, update: (data: T) => T) => {
-    const queryKey = tripQueryKey(query, tripId);
+  return async <T>(query: TripQuery<T, never>, update: (data: T) => T, param?: string) => {
+    const queryKey = tripQueryKey(query, tripId, param);
     // A refetch already in flight would land afterwards and wipe out the update.
     await queryClient.cancelQueries({ queryKey });
     const previous = queryClient.getQueriesData<T>({ queryKey });

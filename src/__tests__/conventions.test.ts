@@ -40,6 +40,13 @@ describe('codebase conventions (see CLAUDE.md)', () => {
     expect(offenders.map(relative)).toEqual([]);
   });
 
+  it('text inputs go through TextField, which keeps them clear of the keyboard', () => {
+    const offenders = appFiles.filter(
+      (file) => relative(file) !== 'components/text-fields.tsx' && /<TextInput\b/.test(read(file)),
+    );
+    expect(offenders.map(relative)).toEqual([]);
+  });
+
   it('writes never wait for a refetch before the screen responds', () => {
     const offenders = appFiles.filter((file) => /await invalidate\(/.test(read(file)));
     expect(offenders.map(relative)).toEqual([]);

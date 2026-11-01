@@ -3,6 +3,7 @@ import { Platform, RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors, ScreenBottomSpace, Spacing } from '@/constants/theme';
+import { RevealFocusedInputContext, useFocusedInputAboveKeyboard } from '@/hooks/use-focused-input-above-keyboard';
 
 type ScreenProps = PropsWithChildren<{
   refreshing?: boolean;
@@ -14,6 +15,7 @@ type ScreenProps = PropsWithChildren<{
 // but not the status bar or system navigation bar, so those are padded by hand.
 export function Screen({ children, refreshing = false, onRefresh }: ScreenProps) {
   const insets = useSafeAreaInsets();
+  const { scrollRef, onScroll, reveal } = useFocusedInputAboveKeyboard();
   const androidInsets =
     Platform.OS === 'ios'
       ? null
@@ -21,6 +23,9 @@ export function Screen({ children, refreshing = false, onRefresh }: ScreenProps)
 
   return (
     <ScrollView
+      ref={scrollRef}
+      onScroll={onScroll}
+      scrollEventThrottle={32}
       style={styles.screen}
       contentContainerStyle={[styles.content, androidInsets]}
       contentInsetAdjustmentBehavior="automatic"
@@ -28,7 +33,7 @@ export function Screen({ children, refreshing = false, onRefresh }: ScreenProps)
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="on-drag"
       refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} /> : undefined}>
-      {children}
+      <RevealFocusedInputContext value={reveal}>{children}</RevealFocusedInputContext>
     </ScrollView>
   );
 }

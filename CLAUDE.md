@@ -58,7 +58,7 @@ src/test-utils/   test helpers and fixtures (not tests themselves)
 - **Every screen's outer container is `<Screen>`** (`src/components/screen.tsx`), including error and placeholder screens. Never use a bare `ScrollView`, `View` or `SafeAreaView` as the outer container. `Screen` gives:
   - room to scroll the last item clear of the tab bar and home indicator, plus `ScreenBottomSpace`;
   - safe-area insets on both platforms;
-  - focused inputs scrolled above the keyboard, and drag-to-dismiss for the keyboard.
+  - the whole focused field scrolled clear of the keyboard (`useFocusedInputAboveKeyboard`), and drag-to-dismiss for the keyboard. Text inputs go through `TextField`, which asks the screen to do this; never use a bare `TextInput`.
 - **Point steppers follow the number line.** `+` always moves toward positive (−5 → −4), and a penalty stays negative. Steppers work on the signed value, never on the magnitude.
 - **Number-pad inputs must close the keyboard themselves**, because the iPhone number pad has no Done key. Use `PinField`; any other numeric input closes the keyboard once its value is complete.
 - **Busy and error state for user actions** goes through `useAsyncAction`.
@@ -76,6 +76,7 @@ src/test-utils/   test helpers and fixtures (not tests themselves)
   - Picked and compressed on the phone by `usePhotoPicker` (longest edge 1600px, JPEG).
   - Uploaded by `createEntry` before the entry is saved; `create_entry` checks each file really is in storage.
   - Shown through `EntryPhotos`, which caches by storage path because the signed links change on every fetch.
+- **Comments** are one level deep, as the database allows. The box at the bottom of an entry always comments on the entry; tapping a comment opens a reply box under its thread. Replying to a reply joins its thread (`threadIdOf`), so the app never offers a reply the database would refuse. Comments are sent with the keyboard's Send key, with no send button on screen; a reply box has only a small Cancel. Your comment shows straight away, marked as sending, and the field gets its text back if the server refuses it.
 - Colors, spacing and radii come from `src/constants/theme.ts` ("Receipts" look from concepts.html), never hard-coded. Points are shown with `formatPoints` (real minus sign).
 - The app is light-only (`userInterfaceStyle: "light"`).
 

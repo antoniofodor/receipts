@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { EntryStatus } from '@/api/entries';
-import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
+import { Colors, Fonts, Radius } from '@/constants/theme';
 
 const STATUS_STYLE: Record<EntryStatus, { label: string; color: string }> = {
   pending: { label: 'PENDING', color: Colors.muted },
@@ -19,6 +19,6 @@ export function StatusPill({ status }: { status: EntryStatus }) {
 }
 
 const styles = StyleSheet.create({
-  pill: { borderWidth: 1.5, borderRadius: Radius.sm, paddingHorizontal: Spacing.sm, paddingVertical: 2 },
-  text: { fontFamily: Fonts.mono, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+  pill: { borderWidth: 1, borderRadius: Radius.sm, paddingHorizontal: 5, paddingVertical: 1 },
+  text: { fontFamily: Fonts.mono, fontSize: 9, fontWeight: '800', letterSpacing: 0.8 },
 });

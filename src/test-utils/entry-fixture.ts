@@ -25,6 +25,7 @@ export function makeEntry(overrides: Partial<Entry> = {}): Entry {
     rule: { title: 'Drinking from a straw' },
     votes: [],
     photos: [],
+    commentCount: 0,
     ...overrides,
   };
 }

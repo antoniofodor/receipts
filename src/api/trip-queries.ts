@@ -1,10 +1,11 @@
+import { getComments } from '@/api/comments';
 import { getEntriesAwaitingMyVote, getEntry, getPlayerEntries, getRecentEntries } from '@/api/entries';
 import { getLeaderboard } from '@/api/leaderboard';
 import { getPlayers } from '@/api/players';
 import type { LiveTable } from '@/api/realtime';
 import { getRules } from '@/api/rules';
 
-// Param narrows a query to one thing inside the trip (an entry, a player's entries). Each param gets its own cache entry,
+// Param narrows a query to one thing inside the trip (an entry, its comments, a player's entries). Each param gets its own cache entry,
 // and invalidating the query refreshes all of them.
 export type TripQuery<T, Param = void> = {
   name: string;
@@ -14,19 +15,23 @@ export type TripQuery<T, Param = void> = {
 
 type AnyTripQuery = TripQuery<unknown, never>;
 
+// Everything shown on an entry card: its status, votes, photos and comment count.
+const ENTRY_TABLES: LiveTable[] = ['entries', 'votes', 'evidence', 'comments'];
+
 export const tripQueries = {
-  feed: { name: 'feed', fetch: getRecentEntries, refreshWhenChanged: ['entries', 'votes', 'evidence'] },
+  feed: { name: 'feed', fetch: getRecentEntries, refreshWhenChanged: ENTRY_TABLES },
   awaitingMyVote: {
     name: 'awaiting-my-vote',
     fetch: getEntriesAwaitingMyVote,
-    refreshWhenChanged: ['entries', 'votes', 'evidence'],
+    refreshWhenChanged: ENTRY_TABLES,
   },
   playerEntries: {
     name: 'player-entries',
     fetch: getPlayerEntries,
-    refreshWhenChanged: ['entries', 'votes', 'evidence'],
+    refreshWhenChanged: ENTRY_TABLES,
   },
-  entry: { name: 'entry', fetch: getEntry, refreshWhenChanged: ['entries', 'votes', 'evidence'] },
+  entry: { name: 'entry', fetch: getEntry, refreshWhenChanged: ENTRY_TABLES },
+  comments: { name: 'comments', fetch: getComments, refreshWhenChanged: ['comments'] },
   leaderboard: { name: 'leaderboard', fetch: getLeaderboard, refreshWhenChanged: ['entries'] },
   rules: { name: 'rules', fetch: getRules, refreshWhenChanged: ['rules'] },
   players: { name: 'players', fetch: getPlayers, refreshWhenChanged: [] },

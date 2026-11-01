@@ -68,6 +68,7 @@ describe('useTripLiveUpdates', () => {
       ['awaiting-my-vote', 'trip-1'],
       ['player-entries', 'trip-1'],
       ['entry', 'trip-1'],
+      ['comments', 'trip-1'],
       ['leaderboard', 'trip-1'],
       ['rules', 'trip-1'],
     ]);

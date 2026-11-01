@@ -23,12 +23,22 @@ describe('trip queries', () => {
     expect(names(queriesRefreshedBy('evidence'))).toEqual(['awaiting-my-vote', 'entry', 'feed', 'player-entries']);
   });
 
+  it('refreshes the thread and the comment counts when someone comments', () => {
+    expect(names(queriesRefreshedBy('comments'))).toEqual([
+      'awaiting-my-vote',
+      'comments',
+      'entry',
+      'feed',
+      'player-entries',
+    ]);
+  });
+
   it('refreshes the rulebook when a rule is added', () => {
     expect(names(queriesRefreshedBy('rules'))).toEqual(['rules']);
   });
 
   it('subscribes to each live table once', () => {
-    expect([...liveTables].sort()).toEqual(['entries', 'evidence', 'rules', 'votes']);
+    expect([...liveTables].sort()).toEqual(['comments', 'entries', 'evidence', 'rules', 'votes']);
   });
 
   it('keys a player-scoped query per player, under a prefix that refreshes them all', () => {

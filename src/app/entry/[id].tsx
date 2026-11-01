@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 
 import { tripQueries } from '@/api/trip-queries';
 import { BackLink } from '@/components/back-link';
+import { EntryComments } from '@/components/comments/entry-comments';
 import { EntryCard } from '@/components/feed/entry-card';
 import { EntryPhotos } from '@/components/feed/entry-photos';
 import { Screen } from '@/components/screen';
@@ -25,8 +26,9 @@ export default function EntryScreen() {
             entry={entry.data}
             myPlayerId={membership.player_id}
             votesNeeded={membership.vote_threshold}
-            showPhotos={false}
+            variant="detail"
           />
+          <EntryComments entryId={entry.data.id} />
         </>
       ) : null}
       {!entry.loading && !entry.error && entry.data === null ? (

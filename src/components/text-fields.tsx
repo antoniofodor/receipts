@@ -1,12 +1,35 @@
-import { Keyboard, StyleSheet, TextInput, type TextInputProps } from 'react-native';
+import { type Ref, use } from 'react';
+import { Keyboard, StyleSheet, TextInput, type TextInputInstance, type TextInputProps } from 'react-native';
 
 import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
+import { RevealFocusedInputContext } from '@/hooks/use-focused-input-above-keyboard';
 
 export const PIN_LENGTH = 4;
 export const TRIP_CODE_LENGTH = 6;
 
-export function TextField(props: TextInputProps) {
-  return <TextInput placeholderTextColor={Colors.muted} {...props} style={[styles.field, props.style]} />;
+export function TextField({
+  ref,
+  onFocus,
+  onContentSizeChange,
+  ...props
+}: TextInputProps & { ref?: Ref<TextInputInstance> }) {
+  const revealFocusedInput = use(RevealFocusedInputContext);
+  return (
+    <TextInput
+      ref={ref}
+      placeholderTextColor={Colors.muted}
+      {...props}
+      onFocus={(event) => {
+        onFocus?.(event);
+        revealFocusedInput();
+      }}
+      onContentSizeChange={(event) => {
+        onContentSizeChange?.(event);
+        if (props.multiline) revealFocusedInput();
+      }}
+      style={[styles.field, props.style]}
+    />
+  );
 }
 
 type PinFieldProps = {
