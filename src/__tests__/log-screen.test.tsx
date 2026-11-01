@@ -65,7 +65,6 @@ describe('Log points screen', () => {
       tripId: 'trip',
       subjectId: 'jonno',
       rule: { existingRuleId: 'straw' },
-      points: -5,
       note: '',
       photos: [],
     });
@@ -85,7 +84,6 @@ describe('Log points screen', () => {
     expect(createEntryMock.mock.calls[0][0]).toMatchObject({
       subjectId: 'dev',
       rule: { newRuleTitle: 'Carried the groom home', newRulePoints: 6 },
-      points: 6,
     });
   });
 
@@ -98,6 +96,17 @@ describe('Log points screen', () => {
     await fireEvent.press(screen.getByLabelText('Increase rule points'));
 
     expect(screen.getByRole('button', { name: 'Log −4 for yourself' })).toBeEnabled();
+  });
+
+  it("counts the rule's points, with no way to change them for one entry", async () => {
+    await renderWithQueryClient(<LogScreen />);
+    await fireEvent.press(await screen.findByLabelText('Jonno'));
+    await fireEvent.press(screen.getByRole('radio', { name: 'Penalty' }));
+    await fireEvent.changeText(screen.getByLabelText('Search rules'), 'straw');
+    await fireEvent.press(screen.getByLabelText('Drinking from a straw, −5'));
+
+    expect(screen.getByText('−5')).toBeTruthy();
+    expect(screen.queryByLabelText('Increase entry points')).toBeNull();
   });
 
   it('shows no rules until Penalty or Bonus is picked, then only that kind', async () => {

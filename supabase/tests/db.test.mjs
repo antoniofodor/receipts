@@ -25,9 +25,20 @@ async function rpc(fn, args = {}) {
   return rows[0].r;
 }
 
-// What a phone's upload to the evidence bucket leaves behind, as far as the database can tell.
-async function upload(path) {
-  await client.query(`insert into storage.objects (bucket_id, name) values ('evidence', $1)`, [path]);
+// What a phone's upload leaves behind, as far as the database can tell. The current user owns the file.
+async function upload(path, bucket = 'evidence') {
+  await client.query(`insert into storage.objects (bucket_id, name, owner_id) values ($1, $2, auth.uid()::text)`, [
+    bucket,
+    path,
+  ]);
+}
+
+// What the Storage API's remove does: a delete as the current user, under the bucket's policies.
+// Returns how many files were actually deleted.
+async function removeFile(path, bucket = 'evidence') {
+  await client.query(`select set_config('storage.allow_delete_query', 'true', true)`);
+  const { rowCount } = await client.query('delete from storage.objects where bucket_id = $1 and name = $2', [bucket, path]);
+  return rowCount;
 }
 
 async function rows(sql, params = []) {
@@ -259,13 +270,13 @@ async function run() {
       assert.ok(id);
     });
 
-    await test('entry points can override the rule within -50 to 50', async () => {
+    await test("an entry always counts its rule's points, with no way to send its own", async () => {
       await as(users.tommo);
       const late = await ruleId('Late to a group plan (per 10 min)');
-      const id = await rpc('create_entry', { p_trip_id: shared.tripId, p_subject_id: playerId('Kev'), p_rule_id: late, p_points: -10, p_note: '20 minutes late to dinner' });
+      const id = await rpc('create_entry', { p_trip_id: shared.tripId, p_subject_id: playerId('Kev'), p_rule_id: late, p_note: 'Late to dinner' });
       const [e] = await rows('select points, note, status from public.entries where id = $1', [id]);
-      assert.deepEqual([e.points, e.note, e.status], [-10, '20 minutes late to dinner', 'pending']);
-      await expectError(() => rpc('create_entry', { p_trip_id: shared.tripId, p_subject_id: playerId('Kev'), p_rule_id: late, p_points: -60 }), 'between -50 and 50');
+      assert.deepEqual([e.points, e.note, e.status], [-5, 'Late to dinner', 'pending']);
+      await expectError(() => rpc('create_entry', { p_trip_id: shared.tripId, p_subject_id: playerId('Kev'), p_rule_id: late, p_points: -10 }), 'does not exist');
       await expectError(() => rpc('create_entry', { p_trip_id: shared.tripId, p_subject_id: playerId('Kev') }), 'Pick a rule');
     });
 
@@ -341,6 +352,112 @@ async function run() {
     await test('only trip members can upload into a trip\'s photo folder', async () => {
       await as(users.outsider);
       await expectError(() => upload(`${shared.tripId}/${randomUUID()}/sneaky.jpg`), 'row-level security');
+    });
+
+    console.log('\nDeleting entries');
+
+    const logStraw = async (subject = 'Kev', photoCount = 0) => {
+      const entryId = randomUUID();
+      const photos = Array.from({ length: photoCount }, (_, i) => ({ path: `${shared.tripId}/${entryId}/${i}.jpg`, width: 1, height: 1 }));
+      for (const photo of photos) await upload(photo.path);
+      await rpc('create_entry', {
+        p_trip_id: shared.tripId, p_subject_id: playerId(subject), p_rule_id: await ruleId('Drinking from a straw'),
+        p_entry_id: entryId, p_photos: JSON.stringify(photos),
+      });
+      return { entryId, paths: photos.map((photo) => photo.path) };
+    };
+
+    await test('the logger deletes a pending entry with its votes, photos and comments, and the trip hears about it', async () => {
+      await as(users.dev);
+      const { entryId, paths } = await logStraw('Kev', 2);
+      await as(users.sully);
+      await rpc('cast_vote', { p_entry_id: entryId, p_confirm: true });
+      await as(users.jonno);
+      await rpc('add_comment', { p_entry_id: entryId, p_body: 'Wrong person' });
+
+      await as(users.dev);
+      const removed = await rpc('delete_entry', { p_entry_id: entryId });
+
+      assert.deepEqual(removed, paths);
+      for (const table of ['entries', 'votes', 'evidence', 'comments']) {
+        const column = table === 'entries' ? 'id' : 'entry_id';
+        assert.equal((await rows(`select 1 from public.${table} where ${column} = $1`, [entryId])).length, 0, table);
+      }
+      await as(users.jonno);
+      const [deleted] = await rows('select trip_id, deleted_by from public.deleted_entries where entry_id = $1', [entryId]);
+      assert.deepEqual(deleted, { trip_id: shared.tripId, deleted_by: playerId('Dev') });
+      await as(users.outsider);
+      assert.equal((await rows('select 1 from public.deleted_entries')).length, 0);
+    });
+
+    await test('only the logger can delete an entry, and only before the votes are in', async () => {
+      await as(users.dev);
+      const { entryId } = await logStraw('Kev');
+      await as(users.kev);
+      await expectError(() => rpc('delete_entry', { p_entry_id: entryId }), 'Only the person who logged');
+      await as(users.outsider);
+      await expectError(() => rpc('delete_entry', { p_entry_id: entryId }), 'Entry not found');
+      for (const voter of ['sully', 'tommo', 'jonno']) {
+        await as(users[voter]);
+        await rpc('cast_vote', { p_entry_id: entryId, p_confirm: true });
+      }
+      await as(users.dev);
+      await expectError(() => rpc('delete_entry', { p_entry_id: entryId }), 'votes are in');
+    });
+
+    await test('only the uploader removes photo files, and only once no entry uses them', async () => {
+      await as(users.dev);
+      const { entryId, paths: [photo] } = await logStraw('Kev', 1);
+      assert.equal(await removeFile(photo), 0, 'still attached to its entry');
+      await rpc('delete_entry', { p_entry_id: entryId });
+      await as(users.jonno);
+      assert.equal(await removeFile(photo), 0, 'someone else uploaded it');
+      await as(users.dev);
+      assert.equal(await removeFile(photo), 1);
+    });
+
+    console.log('\nProfile photos');
+
+    const avatarPath = (player, file) => `${shared.tripId}/${playerId(player)}/${file}.jpg`;
+
+    await test('players set, replace and clear their own photo, and it shows on the board and the join screen', async () => {
+      await as(users.sully);
+      const [first, second] = [avatarPath('Sully', 'first'), avatarPath('Sully', 'second')];
+      await upload(first, 'avatars');
+      await upload(second, 'avatars');
+
+      assert.equal(await rpc('set_my_photo', { p_trip_id: shared.tripId, p_photo_path: first }), null);
+      assert.equal((await leaderboardRow('Sully')).photo_path, first);
+      const preview = await rpc('trip_preview', { p_code: shared.code });
+      assert.equal(preview.players.find((p) => p.name === 'Sully').photo_path, first);
+
+      assert.equal(await rpc('set_my_photo', { p_trip_id: shared.tripId, p_photo_path: second }), first);
+      assert.equal(await rpc('set_my_photo', { p_trip_id: shared.tripId, p_photo_path: null }), second);
+      assert.equal((await leaderboardRow('Sully')).photo_path, null);
+    });
+
+    await test('players only upload into and use their own photo folder', async () => {
+      await as(users.sully);
+      await expectError(() => upload(avatarPath('Jonno', 'sneaky'), 'avatars'), 'row-level security');
+      await expectError(() => rpc('set_my_photo', { p_trip_id: shared.tripId, p_photo_path: avatarPath('Jonno', 'x') }), 'doesn\'t belong to you');
+      await expectError(() => rpc('set_my_photo', { p_trip_id: shared.tripId, p_photo_path: avatarPath('Sully', 'never') }), 'didn\'t finish uploading');
+      await as(users.outsider);
+      await expectError(() => upload(avatarPath('Sully', 'outsider'), 'avatars'), 'row-level security');
+      await expectError(() => rpc('set_my_photo', { p_trip_id: shared.tripId, p_photo_path: null }), 'not in this trip');
+    });
+
+    await test('only the owner removes their old photos, never the one in use', async () => {
+      await as(users.sully);
+      const [old, current] = [avatarPath('Sully', 'old'), avatarPath('Sully', 'current')];
+      await upload(old, 'avatars');
+      await upload(current, 'avatars');
+      await rpc('set_my_photo', { p_trip_id: shared.tripId, p_photo_path: current });
+
+      await as(users.jonno);
+      assert.equal(await removeFile(old, 'avatars'), 0, 'not their photo');
+      await as(users.sully);
+      assert.equal(await removeFile(current, 'avatars'), 0, 'still in use');
+      assert.equal(await removeFile(old, 'avatars'), 1);
     });
 
     console.log('\nIsolation');

@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { haptics } from '@/components/haptics';
+import { Colors, Radius, Spacing, Type } from '@/constants/theme';
 import type { RuleKind } from '@/utils/points';
 
 const KINDS: { kind: RuleKind; label: string; color: string }[] = [
@@ -24,7 +25,10 @@ export function RuleKindButtons({ value, onChange }: RuleKindButtonsProps) {
             accessibilityRole="radio"
             accessibilityState={{ selected }}
             accessibilityLabel={label}
-            onPress={() => onChange(kind)}
+            onPress={() => {
+              haptics.tick();
+              onChange(kind);
+            }}
             style={({ pressed }) => [
               styles.button,
               { borderColor: color },
@@ -44,12 +48,12 @@ const styles = StyleSheet.create({
   button: {
     flex: 1,
     minHeight: 50,
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderRadius: Radius.md,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.card,
   },
   pressed: { opacity: 0.8 },
-  label: { fontSize: 16, fontWeight: '800' },
+  label: { ...Type.button, fontSize: 13 },
 });

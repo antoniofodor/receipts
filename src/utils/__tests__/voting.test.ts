@@ -1,5 +1,5 @@
 import { makeEntry, players, vote } from '@/test-utils/entry-fixture';
-import { entriesStillNeedingMyVote, myVotingState, tallyVotes, withMyVote } from '@/utils/voting';
+import { canDeleteEntry, entriesStillNeedingMyVote, myVotingState, tallyVotes, withMyVote } from '@/utils/voting';
 
 describe('myVotingState', () => {
   it('lets a bystander vote on a pending entry', () => {
@@ -64,5 +64,15 @@ describe('entriesStillNeedingMyVote', () => {
     const voted = makeEntry({ id: 'voted', votes: [vote('sully', true)] });
     const open = makeEntry({ id: 'open' });
     expect(entriesStillNeedingMyVote([voted, open], players.sully.id).map((entry) => entry.id)).toEqual(['open']);
+  });
+});
+
+describe('canDeleteEntry', () => {
+  it('lets only the person who logged an entry delete it, and only while it is pending', () => {
+    const mine = makeEntry({ filer: players.sully });
+    expect(canDeleteEntry(mine, 'sully')).toBe(true);
+    expect(canDeleteEntry(mine, 'dev')).toBe(false);
+    expect(canDeleteEntry({ ...mine, status: 'confirmed' }, 'sully')).toBe(false);
+    expect(canDeleteEntry({ ...mine, status: 'rejected' }, 'sully')).toBe(false);
   });
 });

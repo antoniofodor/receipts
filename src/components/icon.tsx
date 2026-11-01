@@ -7,6 +7,8 @@ const ICONS = {
   comment: { ios: 'bubble.left', android: 'chat_bubble' },
   confirmed: { ios: 'checkmark.circle.fill', android: 'check_circle' },
   rejected: { ios: 'xmark.circle.fill', android: 'cancel' },
+  share: { ios: 'square.and.arrow.up', android: 'share' },
+  camera: { ios: 'camera.fill', android: 'photo_camera' },
 } satisfies Record<string, SymbolViewProps['name']>;
 
 export type IconName = keyof typeof ICONS;

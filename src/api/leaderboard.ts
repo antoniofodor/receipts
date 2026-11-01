@@ -10,6 +10,7 @@ export type LeaderboardRow = {
   points: number;
   pending_count: number;
   rank: number;
+  photo_path: string | null;
 };
 
 export async function getLeaderboard(tripId: string) {

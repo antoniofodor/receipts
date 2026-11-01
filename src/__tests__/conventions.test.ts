@@ -40,6 +40,18 @@ describe('codebase conventions (see CLAUDE.md)', () => {
     expect(offenders.map(relative)).toEqual([]);
   });
 
+  it('text weights come from the font family, never fontWeight, which custom fonts ignore or fake', () => {
+    const offenders = appFiles.filter((file) => /fontWeight\s*:/.test(read(file)));
+    expect(offenders.map(relative)).toEqual([]);
+  });
+
+  it('font families come from the theme', () => {
+    const offenders = appFiles.filter(
+      (file) => relative(file) !== 'constants/theme.ts' && /fontFamily:\s*['"]/.test(read(file)),
+    );
+    expect(offenders.map(relative)).toEqual([]);
+  });
+
   it('text inputs go through TextField, which keeps them clear of the keyboard', () => {
     const offenders = appFiles.filter(
       (file) => relative(file) !== 'components/text-fields.tsx' && /<TextInput\b/.test(read(file)),

@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { queryClient } from '@/api/query-client';
 import { StartupError } from '@/components/startup-error';
 import { Colors } from '@/constants/theme';
+import { useAppFonts } from '@/hooks/use-app-fonts';
 import { useRefetchOnAppForeground } from '@/hooks/use-refetch-on-app-foreground';
 import { SessionProvider, useSession } from '@/session/session-provider';
 
@@ -14,22 +15,24 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   useRefetchOnAppForeground();
+  const fontsReady = useAppFonts();
   return (
     <QueryClientProvider client={queryClient}>
       <SessionProvider>
         <StatusBar style="dark" />
-        <HideSplashWhenReady />
-        <RootNavigator />
+        <HideSplashWhenReady fontsReady={fontsReady} />
+        {fontsReady ? <RootNavigator /> : null}
       </SessionProvider>
     </QueryClientProvider>
   );
 }
 
-function HideSplashWhenReady() {
+function HideSplashWhenReady({ fontsReady }: { fontsReady: boolean }) {
   const { isLoading } = useSession();
+  const ready = fontsReady && !isLoading;
   useEffect(() => {
-    if (!isLoading) SplashScreen.hideAsync();
-  }, [isLoading]);
+    if (ready) SplashScreen.hideAsync();
+  }, [ready]);
   return null;
 }
 
@@ -50,6 +53,7 @@ function RootNavigator() {
         <Stack.Screen name="log" options={{ presentation: 'modal' }} />
         <Stack.Screen name="player/[id]" />
         <Stack.Screen name="entry/[id]" />
+        <Stack.Screen name="share/[id]" options={{ presentation: 'modal' }} />
       </Stack.Protected>
       <Stack.Protected guard={!isInTrip}>
         <Stack.Screen name="join" />

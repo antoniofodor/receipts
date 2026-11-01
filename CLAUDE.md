@@ -60,6 +60,7 @@ src/test-utils/   test helpers and fixtures (not tests themselves)
   - safe-area insets on both platforms;
   - the whole focused field scrolled clear of the keyboard (`useFocusedInputAboveKeyboard`), and drag-to-dismiss for the keyboard. Text inputs go through `TextField`, which asks the screen to do this; never use a bare `TextInput`.
 - **Point steppers follow the number line.** `+` always moves toward positive (−5 → −4), and a penalty stays negative. Steppers work on the signed value, never on the magnitude.
+- **An entry counts its rule's points**, with no per-entry adjustment (`create_entry` takes no points since `0010`). To log a different amount, pick or create a different rule.
 - **Number-pad inputs must close the keyboard themselves**, because the iPhone number pad has no Done key. Use `PinField`; any other numeric input closes the keyboard once its value is complete.
 - **Busy and error state for user actions** goes through `useAsyncAction`.
 - **Reading trip data:** every list is declared once in `src/api/trip-queries.ts` (name, fetch function, the live tables that refresh it) and read with `useTripQuery(tripQueries.x)`. TanStack Query caches it, so screens and the tab badge share one copy. Never fetch in a component with `useEffect`.
@@ -76,8 +77,19 @@ src/test-utils/   test helpers and fixtures (not tests themselves)
   - Picked and compressed on the phone by `usePhotoPicker` (longest edge 1600px, JPEG).
   - Uploaded by `createEntry` before the entry is saved; `create_entry` checks each file really is in storage.
   - Shown through `EntryPhotos`, which caches by storage path because the signed links change on every fetch.
+  - **Profile photos** are cropped square and kept to 512px (`takeProfilePhoto` / `chooseProfilePhoto`), stored in the public `avatars` bucket under a new random name each time, and shown by `Avatar` from `photoPath`. Every query that returns a player returns its `photo_path`, so pass it to every `Avatar`.
+- **Deleting an entry**: only the person who logged it, only while it's pending (`canDeleteEntry`, mirroring `delete_entry`). It leaves every list at once (`useDeleteEntry`) and comes back if the server refuses.
+- **Sharing a post** (anyone in the trip): the share icon opens the `share/[id]` sheet, which shows the exact receipt picture (`ReceiptSnapshot`) before anything leaves the trip. It shares that picture with a caption (`shareCaption`), saves it, or saves the original photos (`share-actions.ts`), and asks only for permission to add to Photos. The picture waits for its photo to load before it is taken. Links that open the app need a domain and a real build: see PLAN.md.
 - **Comments** are one level deep, as the database allows. The box at the bottom of an entry always comments on the entry; tapping a comment opens a reply box under its thread. Replying to a reply joins its thread (`threadIdOf`), so the app never offers a reply the database would refuse. Comments are sent with the keyboard's Send key, with no send button on screen; a reply box has only a small Cancel. Your comment shows straight away, marked as sending, and the field gets its text back if the server refuses it.
-- Colors, spacing and radii come from `src/constants/theme.ts` ("Receipts" look from concepts.html), never hard-coded. Points are shown with `formatPoints` (real minus sign).
+- **The "Thermal" look** (`concepts-receipt.html`): a gas station receipt, printed in black and red ink on a grey counter.
+  - Colors, fonts, text styles, spacing, radii and springs come from `src/constants/theme.ts`, never hard-coded.
+  - Everything is set in JetBrains Mono; headings use the condensed display face. Custom fonts pick their weight by family (`Fonts.bold`), never `fontWeight`. Prefer the `Type` text styles.
+  - Every card is a receipt (`Card`, with a torn edge). Receipt pieces live in `src/components/receipt/`: `LineItem` (title, dotted leader, amount), `DashedRule`, `Barcode`, `Stamp`, `PumpDisplay`. Section headings use `SectionLabel`; small boxed labels (status, who logged it) use `Tag`, which has one fixed height so tags side by side line up.
+  - User-facing vote wording is the card terminal's: **Approve / Decline**, statuses **Pending / Approved / Declined**. In code and SQL they stay `confirm` / `reject`.
+- **Motion and haptics.** Tappable things use `PressableScale` (or `Button`), which springs under the thumb and plays a haptic from `haptics`: tap on press, success on approve, warning on decline, tick on steppers and pickers. List rows print in through `AnimatedListItem` (pass `index` to stagger). Changing numbers count with `useCountUp`. The stamp lands only when an entry settles while you watch (`useSettledWhileWatching`). Reanimated follows the phone's Reduce Motion setting.
+- **Logging points** starts from the "+" in the middle of the tab bar: a tab that can't be selected (`disabled`) and opens the `/log` sheet from its `tabPress` listener, so the current tab stays put. The `(app)/add` route behind it only redirects to `/log`.
+- **Lean copy.** No explanatory subtitles or helper sentences: the screen should explain itself. Muted text is only for empty states ("Nothing logged yet"), live information (tallies, "Sending…"), why an action is unavailable, or a warning someone could regret missing (the PIN reminder). Show facts as receipt lines (`LineItem`) rather than sentences.
+- Points are shown with `formatPoints` (real minus sign).
 - The app is light-only (`userInterfaceStyle: "light"`).
 
 ## Data and security
@@ -86,6 +98,9 @@ src/test-utils/   test helpers and fixtures (not tests themselves)
 - Schema changes go in a new numbered migration file. Run `npm run db:migrate`, then `npm run db:test`, and add tests for new rules.
 - New functions get `revoke ... from public, anon` and an explicit `grant execute ... to authenticated`, as in `0001_core.sql`.
 - Error messages raised in SQL are shown to users as-is, so write them as plain sentences.
+- **Stored files can't be deleted from SQL** (Supabase blocks it). A function that drops rows pointing at files returns their paths, and the phone removes them through the Storage API under a narrow delete policy (see `0007_delete_entry.sql`). The Storage API's remove also needs a select policy on the bucket.
+- **In policies, qualify columns of the policy's own table** (`objects.name`) whenever a subquery joins another table. A bare `name` inside `select … from players` means the player's name (fixed in `0009`).
+- **Realtime can't route a DELETE to one trip**, because the old row carries only its id. Anything that deletes rows phones are showing also inserts into a log table they subscribe to, like `deleted_entries`.
 
 ## Secrets
 

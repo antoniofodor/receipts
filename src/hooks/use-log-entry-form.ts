@@ -5,7 +5,7 @@ import type { LocalPhoto } from '@/api/photos';
 import type { Rule } from '@/api/rules';
 import { DEFAULT_NEW_RULE_MAGNITUDE } from '@/constants/game-rules';
 import { MAX_PHOTOS_PER_ENTRY } from '@/utils/photo-size';
-import { entryPointsRange, kindOfPoints, signedPoints, type RuleKind } from '@/utils/points';
+import { kindOfPoints, signedPoints, type RuleKind } from '@/utils/points';
 
 export type RuleSummary = Pick<Rule, 'id' | 'title' | 'points'>;
 
@@ -27,22 +27,15 @@ export function useLogEntryForm(initialRule: RuleSummary | null = null) {
   const [selection, setSelection] = useState<RuleSelection>(
     initialRule ? { type: 'existing', rule: initialRule } : { type: 'none' },
   );
-  const [pointsOverride, setPointsOverride] = useState<number | null>(null);
   const [note, setNote] = useState('');
   const [photos, setPhotos] = useState<LocalPhoto[]>([]);
 
-  const rulePoints = rulePointsOf(selection);
-  const points = pointsOverride ?? rulePoints;
-  const pointsRange = rulePoints === null ? null : entryPointsRange(rulePoints);
+  // An entry always counts its rule's points.
+  const points = rulePointsOf(selection);
   const isComplete = subjectId !== null && points !== null;
 
-  function changeSelection(next: RuleSelection) {
-    setSelection(next);
-    setPointsOverride(null);
-  }
-
   function updateNewRule(changes: Partial<{ kind: RuleKind; magnitude: number }>) {
-    if (selection.type === 'new') changeSelection({ ...selection, ...changes });
+    if (selection.type === 'new') setSelection({ ...selection, ...changes });
   }
 
   function toNewEntry(tripId: string): NewEntry {
@@ -56,7 +49,6 @@ export function useLogEntryForm(initialRule: RuleSummary | null = null) {
         selection.type === 'existing'
           ? { existingRuleId: selection.rule.id }
           : { newRuleTitle: selection.title, newRulePoints: signedPoints(selection.kind, selection.magnitude) },
-      points,
       note,
       photos,
     };
@@ -68,7 +60,6 @@ export function useLogEntryForm(initialRule: RuleSummary | null = null) {
     query,
     selection,
     points,
-    pointsRange,
     note,
     photos,
     photosLeft: MAX_PHOTOS_PER_ENTRY - photos.length,
@@ -77,18 +68,17 @@ export function useLogEntryForm(initialRule: RuleSummary | null = null) {
     setRuleKind,
     setQuery,
     pickRule: (rule: RuleSummary) => {
-      changeSelection({ type: 'existing', rule });
+      setSelection({ type: 'existing', rule });
       setQuery('');
     },
     startNewRule: (title: string) =>
-      changeSelection({ type: 'new', title, kind: ruleKind ?? 'penalty', magnitude: DEFAULT_NEW_RULE_MAGNITUDE }),
+      setSelection({ type: 'new', title, kind: ruleKind ?? 'penalty', magnitude: DEFAULT_NEW_RULE_MAGNITUDE }),
     setNewRuleKind: (kind: RuleKind) => {
       setRuleKind(kind);
       updateNewRule({ kind });
     },
     setNewRuleMagnitude: (magnitude: number) => updateNewRule({ magnitude }),
-    clearRule: () => changeSelection({ type: 'none' }),
-    setPoints: setPointsOverride,
+    clearRule: () => setSelection({ type: 'none' }),
     setNote,
     addPhotos: (added: LocalPhoto[]) => setPhotos((current) => [...current, ...added].slice(0, MAX_PHOTOS_PER_ENTRY)),
     removePhoto: (uri: string) => setPhotos((current) => current.filter((photo) => photo.uri !== uri)),

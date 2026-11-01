@@ -20,7 +20,7 @@ export default function RulesScreen() {
 
   return (
     <Screen refreshing={refreshing} onRefresh={refresh}>
-      <Title subtitle="Shared by everyone on the trip. Tap a rule to log it.">Rulebook</Title>
+      <Title eyebrow={rules ? `${rules.length} rules` : undefined}>Rules</Title>
       <AddRuleCard tripId={membership.trip_id} />
       <ErrorText>{error}</ErrorText>
       <RuleGroup title="Penalties" rules={penalties} onPressRule={logWithRule} />

@@ -1,6 +1,8 @@
 export const PHOTO_MAX_EDGE = 1600;
 export const PHOTO_JPEG_QUALITY = 0.7;
 export const MAX_PHOTOS_PER_ENTRY = 3;
+// Avatars are shown at most a few dozen points across, so this stays sharp on any screen.
+export const PROFILE_PHOTO_EDGE = 512;
 
 type Resize = { width: number; height: null } | { width: null; height: number };
 

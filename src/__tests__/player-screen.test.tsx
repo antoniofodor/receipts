@@ -30,10 +30,11 @@ const tommoRow: LeaderboardRow = {
   points: -5,
   pending_count: 1,
   rank: 4,
+  photo_path: null,
 };
 
 describe('Player screen', () => {
-  it("shows the player's standing, then their pending and confirmed entries", async () => {
+  it("shows the player's standing, then their pending and approved entries", async () => {
     jest.mocked(getLeaderboard).mockResolvedValue([tommoRow]);
     jest.mocked(getPlayerEntries).mockResolvedValue([
       makeEntry({ id: 'pending', subject: players.tommo, rule: { title: 'Asleep before midnight' } }),
@@ -47,10 +48,10 @@ describe('Player screen', () => {
 
     await renderWithQueryClient(<PlayerScreen />);
 
-    expect(await screen.findByText('Pending · 1')).toBeTruthy();
-    expect(screen.getByText('Tommo')).toBeTruthy();
+    expect(await screen.findByText('Pending (1)')).toBeTruthy();
+    expect(screen.getByRole('header', { name: 'Tommo' })).toBeTruthy();
     expect(screen.getByText('#4 · 1 pending')).toBeTruthy();
-    expect(screen.getByText('Confirmed · 1')).toBeTruthy();
+    expect(screen.getByText('Approved (1)')).toBeTruthy();
     expect(screen.getByText('Asleep before midnight')).toBeTruthy();
     expect(screen.getByText('Drinking from a straw')).toBeTruthy();
     expect(getPlayerEntries).toHaveBeenCalledWith('trip-1', 'tommo');

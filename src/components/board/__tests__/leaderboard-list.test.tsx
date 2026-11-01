@@ -12,6 +12,7 @@ const row = {
   points: -5,
   pending_count: 0,
   rank: 1,
+  photo_path: null,
 };
 
 describe('LeaderboardList', () => {

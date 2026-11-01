@@ -1,6 +1,6 @@
 # Point Tracker MVP plan
 
-Bachelor trip points app: a shared feed of evidence posts and a live leaderboard. Entries only count once enough players vote to confirm them. Design reference: [concepts.html](concepts.html) (v0.3, "Receipts" direction).
+Bachelor trip points app: a shared feed of evidence posts and a live leaderboard. Entries only count once enough players vote to confirm them. Design reference: [concepts-receipt.html](concepts-receipt.html) ("Thermal" gas station receipt look; the earlier direction is in [concepts.html](concepts.html)).
 
 ## MVP goal
 
@@ -110,7 +110,7 @@ Each milestone ends with something you can try on your phone.
 | 4 | **Voting, feed and leaderboard.** *(done)* Feed cards with states, vote buttons, needs-your-vote section and badge, live leaderboard, player screen from the board | Three test players confirm an entry and the leaderboard updates on another phone without refreshing |
 | 5 | **Photos.** *(done)* Camera or library, compression, upload, display in feed and detail | A photo taken on one phone shows on another within seconds |
 | 6 | **Comments.** *(done)* Thread on entry detail, replies one level deep, live updates | A reply shows nested under its parent on both phones |
-| 7 | **Ship to friends.** Decide native vs web app, build, set up Maestro end-to-end flows for join, log and vote, install on everyone's phones, practice round | The whole group plays a test evening and the feedback is written down |
+| 7 | **Ship to friends.** Decide native vs web app, build, set up Maestro end-to-end flows for join, log and vote, install on everyone's phones, practice round. Shared posts: add a link to the caption that opens the entry in the app (universal links) and shows a preview card in chats, which needs a domain, a public page per shared post, and a real build | The whole group plays a test evening and the feedback is written down |
 
 Milestones 1 to 4 are the core. Once they're done the app works end to end with text-only entries, and photos and comments add to that.
 

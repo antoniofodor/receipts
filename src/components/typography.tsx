@@ -1,23 +1,48 @@
 import type { PropsWithChildren, ReactNode } from 'react';
 import { StyleSheet, Text, View, type StyleProp, type TextStyle } from 'react-native';
 
-import { Colors, Fonts, Spacing } from '@/constants/theme';
+import { DashedRule } from '@/components/receipt/dashed-rule';
+import { Colors, Fonts, Spacing, Type } from '@/constants/theme';
 
-export function Title({ children, subtitle }: { children: ReactNode; subtitle?: ReactNode }) {
+type TitleProps = {
+  children: ReactNode;
+  eyebrow?: string;
+  subtitle?: ReactNode;
+};
+
+export function Title({ children, eyebrow, subtitle }: TitleProps) {
   return (
     <View style={styles.titleBlock}>
-      <Text style={styles.title}>{children}</Text>
-      {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+      {eyebrow ? <Text style={Type.label}>{eyebrow}</Text> : null}
+      <Text style={Type.display} accessibilityRole="header">
+        {children}
+      </Text>
+      {subtitle ? <Text style={Type.muted}>{subtitle}</Text> : null}
     </View>
   );
 }
 
 export function Label({ children }: PropsWithChildren) {
-  return <Text style={styles.label}>{children}</Text>;
+  return <Text style={Type.label}>{children}</Text>;
+}
+
+// A section heading printed across the receipt roll: LABEL (count) - - - - -
+export function SectionLabel({ children, count }: PropsWithChildren<{ count?: number }>) {
+  return (
+    <View style={styles.sectionRow}>
+      <Text style={Type.label}>
+        {children}
+        {count !== undefined ? <Text style={styles.count}>{` (${count})`}</Text> : null}
+      </Text>
+      <View style={styles.sectionRule}>
+        <DashedRule />
+      </View>
+    </View>
+  );
 }
 
 export function MutedText({ children, style }: PropsWithChildren<{ style?: StyleProp<TextStyle> }>) {
-  return <Text style={[styles.muted, style]}>{children}</Text>;
+  return <Text style={[Type.muted, style]}>{children}</Text>;
 }
 
 export function ErrorText({ children }: { children: string | null }) {
@@ -30,16 +55,9 @@ export function ErrorText({ children }: { children: string | null }) {
 }
 
 const styles = StyleSheet.create({
-  titleBlock: { gap: Spacing.xs, flexShrink: 1 },
-  title: { fontSize: 30, fontWeight: '900', color: Colors.ink, letterSpacing: -0.5 },
-  subtitle: { fontSize: 15, color: Colors.muted, lineHeight: 21 },
-  label: {
-    fontFamily: Fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    color: Colors.muted,
-  },
-  muted: { fontSize: 14, color: Colors.muted, lineHeight: 20 },
-  error: { color: Colors.danger, fontSize: 14, fontWeight: '600' },
+  titleBlock: { gap: Spacing.xs },
+  sectionRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.xs },
+  sectionRule: { flex: 1 },
+  count: { color: Colors.red, fontFamily: Fonts.bold },
+  error: { fontFamily: Fonts.semiBold, fontSize: 13, lineHeight: 19, color: Colors.danger },
 });

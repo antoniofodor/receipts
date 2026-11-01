@@ -21,7 +21,12 @@ export function useAddComment(entryId: string) {
       parent_id: parentId,
       body: body.trim(),
       created_at: new Date().toISOString(),
-      author: { id: membership.player_id, name: membership.player_name, color: me?.color ?? Colors.muted },
+      author: {
+        id: membership.player_id,
+        name: membership.player_name,
+        color: me?.color ?? Colors.muted,
+        photo_path: me?.photo_path ?? null,
+      },
       sending: true,
     };
     const countOneMore = (entry: Entry) =>

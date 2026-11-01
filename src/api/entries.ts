@@ -6,7 +6,7 @@ import { supabase } from '@/api/supabase-client';
 
 export type EntryStatus = 'pending' | 'confirmed' | 'rejected';
 
-type EntryPlayer = { id: string; name: string; color: string };
+type EntryPlayer = { id: string; name: string; color: string; photo_path: string | null };
 
 export type Vote = { confirm: boolean; voter: { id: string; name: string } };
 
@@ -32,7 +32,6 @@ export type NewEntry = {
   tripId: string;
   subjectId: string;
   rule: RuleChoice;
-  points: number;
   note: string;
   photos: LocalPhoto[];
 };
@@ -42,8 +41,8 @@ export type VoteResult = { status: EntryStatus; confirms: number; rejects: numbe
 export const FEED_PAGE_SIZE = 50;
 
 const ENTRY_COLUMNS = `id, points, note, status, created_at,
-  subject:players!entries_subject_id_fkey(id, name, color),
-  filer:players!entries_filed_by_fkey(id, name, color),
+  subject:players!entries_subject_id_fkey(id, name, color, photo_path),
+  filer:players!entries_filed_by_fkey(id, name, color, photo_path),
   rule:rules!entries_rule_id_fkey(title),
   votes:votes!votes_entry_id_fkey(confirm, voter:players!votes_voter_id_fkey(id, name)),
   evidence:evidence!evidence_entry_id_fkey(id, storage_path, width, height, created_at),
@@ -73,7 +72,6 @@ export async function createEntry(entry: NewEntry) {
     p_trip_id: entry.tripId,
     p_subject_id: entry.subjectId,
     ...rule,
-    p_points: entry.points,
     p_note: entry.note.trim() || null,
     p_entry_id: entryId,
     p_photos: photos,
@@ -82,6 +80,13 @@ export async function createEntry(entry: NewEntry) {
 
 export const castVote = (entryId: string, confirm: boolean) =>
   callFunction<VoteResult>('cast_vote', { p_entry_id: entryId, p_confirm: confirm });
+
+// The database can't delete stored files itself, so it hands back the entry's photos for the phone to remove.
+// The entry is already gone by then: a file left behind is only clutter, never something anyone sees.
+export async function deleteEntry(entryId: string) {
+  const photoPaths = await callFunction<string[]>('delete_entry', { p_entry_id: entryId });
+  if (photoPaths.length > 0) await supabase.storage.from('evidence').remove(photoPaths);
+}
 
 export async function getRecentEntries(tripId: string) {
   return withPhotos(

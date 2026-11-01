@@ -28,6 +28,25 @@ describe('showActionSheet', () => {
     });
   });
 
+  it('shows destructive choices in red', async () => {
+    Platform.OS = 'ios';
+    const sheet = jest
+      .spyOn(ActionSheetIOS, 'showActionSheetWithOptions')
+      .mockImplementation((_options, callback) => callback(1));
+    const editChoices = [
+      { label: 'Change photo', value: 'change' },
+      { label: 'Remove photo', value: 'remove', destructive: true },
+    ];
+
+    await expect(showActionSheet('Profile photo', editChoices)).resolves.toBe('remove');
+    expect(sheet.mock.calls[0][0]).toMatchObject({ destructiveButtonIndex: [1] });
+
+    Platform.OS = 'android';
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    void showActionSheet('Profile photo', editChoices);
+    expect(alert.mock.calls[0][2]?.[1]).toMatchObject({ text: 'Remove photo', style: 'destructive' });
+  });
+
   it('resolves to nothing when cancelled on iOS', async () => {
     Platform.OS = 'ios';
     jest.spyOn(ActionSheetIOS, 'showActionSheetWithOptions').mockImplementation((_options, callback) => callback(2));

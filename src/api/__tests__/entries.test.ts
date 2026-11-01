@@ -28,7 +28,6 @@ describe('createEntry', () => {
       tripId: 't',
       subjectId: 'p',
       rule: { existingRuleId: 'r' },
-      points: -10,
       note: ' 20 min late ',
       photos: [],
     });
@@ -37,7 +36,6 @@ describe('createEntry', () => {
       p_trip_id: 't',
       p_subject_id: 'p',
       p_rule_id: 'r',
-      p_points: -10,
       p_note: '20 min late',
       p_entry_id: 'entry-id',
       p_photos: [],
@@ -49,7 +47,6 @@ describe('createEntry', () => {
       tripId: 't',
       subjectId: 'p',
       rule: { newRuleTitle: 'Ordering pineapple on pizza', newRulePoints: -10 },
-      points: -10,
       note: '   ',
       photos: [],
     });
@@ -69,7 +66,6 @@ describe('createEntry', () => {
       tripId: 't',
       subjectId: 'p',
       rule: { existingRuleId: 'r' },
-      points: -5,
       note: '',
       photos: [photo('a'), photo('b')],
     });
@@ -96,7 +92,6 @@ describe('createEntry', () => {
         tripId: 't',
         subjectId: 'p',
         rule: { existingRuleId: 'r' },
-        points: -5,
         note: '',
         photos: [photo('a')],
       }),

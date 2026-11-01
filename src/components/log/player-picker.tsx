@@ -2,7 +2,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Player } from '@/api/players';
 import { Avatar } from '@/components/avatar';
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { haptics } from '@/components/haptics';
+import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
 
 type PlayerPickerProps = {
   players: Player[];
@@ -23,9 +24,12 @@ export function PlayerPicker({ players, myPlayerId, selectedId, onSelect }: Play
             accessibilityRole="radio"
             accessibilityState={{ selected }}
             accessibilityLabel={label}
-            onPress={() => onSelect(player.id)}
+            onPress={() => {
+              haptics.tick();
+              onSelect(player.id);
+            }}
             style={[styles.option, selected && styles.selected]}>
-            <Avatar name={player.name} color={player.color} size={40} />
+            <Avatar name={player.name} color={player.color} photoPath={player.photo_path} size={44} />
             <Text style={[styles.name, selected && styles.selectedName]} numberOfLines={1}>
               {label}
             </Text>
@@ -44,10 +48,17 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.md,
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: 'transparent',
   },
-  selected: { borderColor: Colors.accent, backgroundColor: Colors.card },
-  name: { fontSize: 12, fontWeight: '600', color: Colors.muted, maxWidth: 76 },
+  selected: { borderColor: Colors.ink, backgroundColor: Colors.card },
+  name: {
+    fontFamily: Fonts.bold,
+    fontSize: 10,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    color: Colors.muted,
+    maxWidth: 76,
+  },
   selectedName: { color: Colors.ink },
 });

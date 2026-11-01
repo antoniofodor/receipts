@@ -7,7 +7,7 @@ import { BackLink } from '@/components/back-link';
 import { EntryCard } from '@/components/feed/entry-card';
 import { PlayerSummary } from '@/components/player/player-summary';
 import { Screen } from '@/components/screen';
-import { ErrorText, Label, MutedText } from '@/components/typography';
+import { ErrorText, MutedText, SectionLabel } from '@/components/typography';
 import { useKeptWhileFocused } from '@/hooks/use-kept-while-focused';
 import { useTripQuery } from '@/hooks/use-trip-query';
 import { useMembership } from '@/session/session-provider';
@@ -24,8 +24,8 @@ export default function PlayerScreen() {
   const pendingIds = new Set(pending.items.map((entry) => entry.id));
   const confirmed = entries.data?.filter((entry) => !pendingIds.has(entry.id)) ?? [];
 
-  const renderEntry = (entry: Entry) => (
-    <AnimatedListItem key={entry.id}>
+  const renderEntry = (entry: Entry, index: number) => (
+    <AnimatedListItem key={entry.id} index={index}>
       <EntryCard entry={entry} myPlayerId={membership.player_id} votesNeeded={membership.vote_threshold} />
     </AnimatedListItem>
   );
@@ -45,14 +45,14 @@ export default function PlayerScreen() {
 
       {pending.items.length > 0 ? (
         <>
-          <Label>Pending · {pending.items.length}</Label>
+          <SectionLabel count={pending.items.length}>Pending</SectionLabel>
           {pending.items.map(renderEntry)}
         </>
       ) : null}
 
       {confirmed.length > 0 ? (
         <>
-          <Label>Confirmed · {confirmed.length}</Label>
+          <SectionLabel count={confirmed.length}>Approved</SectionLabel>
           {confirmed.map(renderEntry)}
         </>
       ) : null}

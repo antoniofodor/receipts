@@ -4,9 +4,9 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { LocalPhoto } from '@/api/photos';
 import { showActionSheet } from '@/components/action-sheet';
 import { Button } from '@/components/button';
-import { ErrorText, Label, MutedText } from '@/components/typography';
+import { ErrorText, SectionLabel } from '@/components/typography';
 import { sharedStyles } from '@/constants/styles';
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
 import { useAsyncAction } from '@/hooks/use-async-action';
 import { usePhotoPicker } from '@/hooks/use-photo-picker';
 
@@ -36,7 +36,7 @@ export function PhotoPickerField({ photos, photosLeft, onAdd, onRemove }: PhotoP
 
   return (
     <View style={sharedStyles.stack}>
-      <Label>Photos (optional)</Label>
+      <SectionLabel>Photos (optional)</SectionLabel>
       {photos.length > 0 ? (
         <View style={styles.thumbnails}>
           {photos.map((photo, index) => (
@@ -53,9 +53,7 @@ export function PhotoPickerField({ photos, photosLeft, onAdd, onRemove }: PhotoP
             </View>
           ))}
         </View>
-      ) : (
-        <MutedText>Receipts or it didn&apos;t happen. Up to 3.</MutedText>
-      )}
+      ) : null}
       {photosLeft > 0 ? <Button title="Add photo" variant="secondary" onPress={addPhoto} loading={busy} /> : null}
       <ErrorText>{error}</ErrorText>
     </View>
@@ -84,5 +82,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  removeText: { color: Colors.onAccent, fontSize: 16, fontWeight: '700', lineHeight: 18 },
+  removeText: { fontFamily: Fonts.bold, color: Colors.onAccent, fontSize: 15, lineHeight: 18 },
 });

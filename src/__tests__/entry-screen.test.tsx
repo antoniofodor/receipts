@@ -1,7 +1,9 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react-native';
+import { router } from 'expo-router';
+import { Alert, type AlertButton } from 'react-native';
 
 import { addComment, getComments, type Comment } from '@/api/comments';
-import { getEntry } from '@/api/entries';
+import { deleteEntry, getEntry } from '@/api/entries';
 import EntryScreen from '@/app/entry/[id]';
 import { makeEntry, players } from '@/test-utils/entry-fixture';
 import { renderWithQueryClient } from '@/test-utils/render-with-query-client';
@@ -16,7 +18,7 @@ jest.mock('expo-router', () => {
 });
 jest.mock('expo-crypto', () => ({ randomUUID: () => 'draft-id' }));
 jest.mock('@/api/supabase-client', () => ({ supabase: {} }));
-jest.mock('@/api/entries', () => ({ castVote: jest.fn(), getEntry: jest.fn() }));
+jest.mock('@/api/entries', () => ({ castVote: jest.fn(), deleteEntry: jest.fn(), getEntry: jest.fn() }));
 jest.mock('@/api/comments', () => ({
   ...jest.requireActual('@/api/comments'),
   getComments: jest.fn(),
@@ -50,7 +52,7 @@ describe('Entry screen', () => {
 
     expect(await screen.findByLabelText('Photo 1 of 1')).toBeTruthy();
     expect(screen.getByText('Drinking from a straw')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Confirm' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Approve' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Open photos' })).toBeNull();
     expect(getEntry).toHaveBeenCalledWith('trip-1', 'entry-1');
   });
@@ -77,7 +79,7 @@ describe('Entry screen', () => {
     const replies = await screen.findByLabelText('Replies to Dev');
     expect(within(replies).getByText('Stirrers have no liquid going up them')).toBeTruthy();
     expect(within(replies).queryByText('Lies')).toBeNull();
-    expect(screen.getByText('Comments · 3')).toBeTruthy();
+    expect(screen.getByText('Comments (3)')).toBeTruthy();
   });
 
   it('shows my comment straight away while the server saves it', async () => {
@@ -170,5 +172,56 @@ describe('Entry screen', () => {
     expect(await screen.findByText('Comments can be up to 1000 characters')).toBeTruthy();
     expect(screen.getByLabelText('Comment').props.value).toBe('Too long');
     expect(screen.queryByText('Sending…')).toBeNull();
+  });
+
+  describe('deleting', () => {
+    const answerAlertWith = (choice: 'Delete' | 'Cancel') =>
+      jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons?: AlertButton[]) => {
+        buttons?.find((button) => button.text === choice)?.onPress?.();
+      });
+
+    afterEach(() => jest.restoreAllMocks());
+
+    it('lets me delete an entry I logged while it is still pending, after I confirm', async () => {
+      jest.mocked(getEntry).mockResolvedValue(makeEntry({ filer: players.sully }));
+      jest.mocked(deleteEntry).mockResolvedValue();
+      answerAlertWith('Delete');
+      await renderWithQueryClient(<EntryScreen />);
+
+      await fireEvent.press(await screen.findByRole('button', { name: 'Delete entry' }));
+
+      await waitFor(() => expect(router.back).toHaveBeenCalled());
+      expect(deleteEntry).toHaveBeenCalledWith('entry-1');
+    });
+
+    it('keeps the entry when I cancel', async () => {
+      jest.mocked(getEntry).mockResolvedValue(makeEntry({ filer: players.sully }));
+      answerAlertWith('Cancel');
+      await renderWithQueryClient(<EntryScreen />);
+
+      await fireEvent.press(await screen.findByRole('button', { name: 'Delete entry' }));
+
+      expect(deleteEntry).not.toHaveBeenCalled();
+    });
+
+    it('explains why if the server refuses, and leaves me on the entry', async () => {
+      jest.mocked(getEntry).mockResolvedValue(makeEntry({ filer: players.sully }));
+      jest
+        .mocked(deleteEntry)
+        .mockRejectedValue(new Error("The votes are in on this entry, so it can't be deleted anymore"));
+      answerAlertWith('Delete');
+      await renderWithQueryClient(<EntryScreen />);
+
+      await fireEvent.press(await screen.findByRole('button', { name: 'Delete entry' }));
+
+      expect(await screen.findByText("The votes are in on this entry, so it can't be deleted anymore")).toBeTruthy();
+      expect(router.back).not.toHaveBeenCalled();
+    });
+
+    it("doesn't offer to delete someone else's entry", async () => {
+      await renderWithQueryClient(<EntryScreen />);
+      expect(await screen.findByText('Drinking from a straw')).toBeTruthy();
+      expect(screen.queryByRole('button', { name: 'Delete entry' })).toBeNull();
+    });
   });
 });

@@ -16,6 +16,7 @@ export type PreviewPlayer = {
   name: string;
   color: string;
   is_groom: boolean;
+  photo_path: string | null;
   has_joined: boolean;
 };
 

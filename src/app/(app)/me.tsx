@@ -3,12 +3,13 @@ import { Alert, Text } from 'react-native';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { InviteCard } from '@/components/invite-card';
+import { ProfileHeader } from '@/components/me/profile-header';
+import { LineItem } from '@/components/receipt/line-item';
 import { Screen } from '@/components/screen';
-import { ErrorText, Label, MutedText, Title } from '@/components/typography';
-import { Colors } from '@/constants/theme';
+import { ErrorText, Label } from '@/components/typography';
+import { Type } from '@/constants/theme';
 import { useAsyncAction } from '@/hooks/use-async-action';
 import { useMembership, useSession } from '@/session/session-provider';
-import { pluralize } from '@/utils/format';
 
 export default function MeScreen() {
   const membership = useMembership();
@@ -30,14 +31,14 @@ export default function MeScreen() {
 
   return (
     <Screen>
-      <Title subtitle={roles || undefined}>{membership.player_name}</Title>
+      <ProfileHeader name={membership.player_name} roles={roles} />
       <Card>
         <Label>Trip</Label>
-        <Text style={{ fontSize: 18, fontWeight: '700', color: Colors.ink }}>{membership.trip_name}</Text>
-        <MutedText>
-          Points count once {pluralize(membership.vote_threshold, 'player confirms', 'players confirm')} them. You
-          can&apos;t vote on entries you logged or that are about you.
-        </MutedText>
+        <Text style={Type.heading}>{membership.trip_name}</Text>
+        <LineItem
+          label="Approvals needed"
+          value={<Text style={[Type.points, { fontSize: 16 }]}>{membership.vote_threshold}</Text>}
+        />
       </Card>
       <InviteCard membership={membership} />
       <ErrorText>{error}</ErrorText>

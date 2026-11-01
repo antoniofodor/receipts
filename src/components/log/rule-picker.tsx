@@ -1,11 +1,14 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import type { Rule } from '@/api/rules';
+import { Card } from '@/components/card';
+import { PressableScale } from '@/components/pressable-scale';
+import { LineItem } from '@/components/receipt/line-item';
 import { TextField } from '@/components/text-fields';
 import { MutedText } from '@/components/typography';
 import { RULE_TITLE_MAX_LENGTH } from '@/constants/game-rules';
 import { sharedStyles } from '@/constants/styles';
-import { Colors, Fonts } from '@/constants/theme';
+import { Colors, Fonts, Spacing } from '@/constants/theme';
 import { formatPoints, pluralize, pointsColor } from '@/utils/format';
 import type { RuleKind } from '@/utils/points';
 import { canCreateRuleNamed, normaliseRuleTitle, rulesOfKind, searchRules } from '@/utils/rule-search';
@@ -44,32 +47,38 @@ export function RulePicker({ rules, kind, query, onChangeQuery, onPickRule, onCr
         accessibilityLabel="Search rules"
       />
       {results.length > 0 || canCreate ? (
-        <View style={sharedStyles.list}>
+        <Card flush style={styles.list}>
           {results.map((rule) => (
-            <Pressable
+            <PressableScale
               key={rule.id}
               accessibilityRole="button"
               accessibilityLabel={`${rule.title}, ${formatPoints(rule.points)}`}
               onPress={() => onPickRule(rule)}
-              style={({ pressed }) => [sharedStyles.listRow, pressed && styles.pressed]}>
-              <Text style={styles.title}>{rule.title}</Text>
-              <Text style={[sharedStyles.pointsText, { color: pointsColor(rule.points) }]}>
-                {formatPoints(rule.points)}
-              </Text>
-            </Pressable>
+              pressedScale={0.98}
+              style={styles.row}>
+              <LineItem
+                label={rule.title}
+                value={
+                  <Text style={[sharedStyles.pointsText, { color: pointsColor(rule.points) }]}>
+                    {formatPoints(rule.points)}
+                  </Text>
+                }
+              />
+            </PressableScale>
           ))}
           {canCreate ? (
-            <Pressable
+            <PressableScale
               accessibilityRole="button"
               accessibilityLabel={`Create rule ${newTitle}`}
               onPress={() => onCreateRule(newTitle)}
-              style={({ pressed }) => [sharedStyles.listRow, styles.createRow, pressed && styles.pressed]}>
+              pressedScale={0.98}
+              style={styles.row}>
               <Text style={styles.createText}>
                 + Create {kind} &ldquo;{newTitle}&rdquo;
               </Text>
-            </Pressable>
+            </PressableScale>
           ) : null}
-        </View>
+        </Card>
       ) : null}
       {otherKindMatches > 0 ? (
         <MutedText>
@@ -81,8 +90,7 @@ export function RulePicker({ rules, kind, query, onChangeQuery, onPickRule, onCr
 }
 
 const styles = StyleSheet.create({
-  title: { flex: 1, fontSize: 15, color: Colors.ink },
-  pressed: { backgroundColor: Colors.soft },
-  createRow: { backgroundColor: Colors.soft },
-  createText: { flex: 1, fontSize: 15, fontWeight: '700', color: Colors.accent, fontFamily: Fonts.mono },
+  list: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.xs },
+  row: { paddingVertical: Spacing.md - 1 },
+  createText: { fontFamily: Fonts.bold, fontSize: 13, textTransform: 'uppercase', color: Colors.red },
 });

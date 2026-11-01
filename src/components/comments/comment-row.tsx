@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Comment } from '@/api/comments';
 import { Avatar } from '@/components/avatar';
 import { MutedText } from '@/components/typography';
-import { Colors, Spacing } from '@/constants/theme';
+import { Colors, Fonts, Spacing, Type } from '@/constants/theme';
 import { formatRelativeTime } from '@/utils/relative-time';
 
 type CommentRowProps = {
@@ -20,7 +20,7 @@ export function CommentRow({ comment, onReply }: CommentRowProps) {
       disabled={comment.sending}
       onPress={() => onReply(comment)}
       style={({ pressed }) => [styles.row, comment.sending && styles.sending, pressed && styles.pressed]}>
-      <Avatar name={comment.author.name} color={comment.author.color} size={28} />
+      <Avatar name={comment.author.name} color={comment.author.color} photoPath={comment.author.photo_path} size={26} />
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.author}>{comment.author.name}</Text>
@@ -39,7 +39,14 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.7 },
   content: { flex: 1, gap: 2 },
   header: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },
-  author: { fontSize: 14, fontWeight: '700', color: Colors.ink },
-  body: { fontSize: 15, lineHeight: 21, color: Colors.ink },
-  reply: { fontSize: 13, fontWeight: '700', color: Colors.muted, paddingTop: 2 },
+  author: { ...Type.name, fontSize: 11.5, letterSpacing: 0.8 },
+  body: Type.body,
+  reply: {
+    fontFamily: Fonts.bold,
+    fontSize: 9.5,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    color: Colors.muted,
+    paddingTop: 2,
+  },
 });

@@ -46,7 +46,7 @@ describe('Feed screen', () => {
 
     await renderWithQueryClient(<FeedScreen />);
 
-    expect(await screen.findByText('Needs your vote · 1')).toBeTruthy();
+    expect(await screen.findByText('Needs your vote (1)')).toBeTruthy();
     expect(screen.getByText('Recent')).toBeTruthy();
     expect(screen.getAllByText('Drinking from a straw')).toHaveLength(1);
     expect(screen.getByText('Asleep before midnight')).toBeTruthy();
@@ -68,10 +68,10 @@ describe('Feed screen', () => {
     jest.mocked(castVote).mockReturnValue(new Promise(() => {}));
     await renderWithQueryClient(<FeedScreen />);
 
-    await fireEvent.press(await screen.findByRole('button', { name: 'Confirm' }));
+    await fireEvent.press(await screen.findByRole('button', { name: 'Approve' }));
 
-    expect(await screen.findByLabelText('You confirmed this')).toBeTruthy();
-    expect(screen.getByLabelText('1 of 3 confirms')).toBeTruthy();
+    expect(await screen.findByLabelText('You approved this')).toBeTruthy();
+    expect(screen.getByLabelText('1 of 3 approvals')).toBeTruthy();
     expect(screen.getByText('Needs your vote')).toBeTruthy();
   });
 
@@ -84,10 +84,10 @@ describe('Feed screen', () => {
     jest.mocked(getRecentEntries).mockResolvedValue([votedOn]);
     jest.mocked(getEntriesAwaitingMyVote).mockResolvedValue([]);
 
-    await fireEvent.press(await screen.findByRole('button', { name: 'Confirm' }));
+    await fireEvent.press(await screen.findByRole('button', { name: 'Approve' }));
 
     await waitFor(() => expect(getEntriesAwaitingMyVote).toHaveBeenCalledTimes(2));
-    expect(await screen.findByLabelText('You confirmed this')).toBeTruthy();
+    expect(await screen.findByLabelText('You approved this')).toBeTruthy();
     expect(screen.getByText('Needs your vote')).toBeTruthy();
     expect(screen.queryByText('Recent')).toBeNull();
   });
@@ -98,10 +98,10 @@ describe('Feed screen', () => {
     jest.mocked(castVote).mockRejectedValue(new Error('Voting on this entry has closed'));
     await renderWithQueryClient(<FeedScreen />);
 
-    await fireEvent.press(await screen.findByRole('button', { name: 'Confirm' }));
+    await fireEvent.press(await screen.findByRole('button', { name: 'Approve' }));
 
     expect(await screen.findByText('Voting on this entry has closed')).toBeTruthy();
-    expect(screen.queryByLabelText('You confirmed this')).toBeNull();
-    expect(screen.getByRole('button', { name: 'Confirm' })).toBeTruthy();
+    expect(screen.queryByLabelText('You approved this')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Approve' })).toBeTruthy();
   });
 });

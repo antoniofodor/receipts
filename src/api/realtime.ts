@@ -1,6 +1,6 @@
 import { supabase } from '@/api/supabase-client';
 
-export type LiveTable = 'entries' | 'votes' | 'rules' | 'comments' | 'evidence';
+export type LiveTable = 'entries' | 'deleted_entries' | 'votes' | 'rules' | 'comments' | 'evidence' | 'players';
 
 type TripChangeHandlers = {
   onChange: (table: LiveTable) => void;

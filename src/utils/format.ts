@@ -17,3 +17,8 @@ export function pointsColor(points: number) {
 export function pluralize(count: number, singular: string, plural: string) {
   return `${count} ${count === 1 ? singular : plural}`;
 }
+
+// A short, stable number to print at the top of an entry's receipt.
+export function formatReceiptNumber(id: string) {
+  return `#${id.replace(/-/g, '').slice(0, 4).toUpperCase()}`;
+}

@@ -12,7 +12,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#FFE9DF",
+        "backgroundColor": "#EAE9E4",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -28,7 +28,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FFE9DF",
+          "backgroundColor": "#EAE9E4",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
@@ -37,9 +37,18 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Receipts uses your photos so you can attach evidence to an entry.",
-          "cameraPermission": "Receipts uses your camera so you can photograph evidence for an entry.",
+          "photosPermission": "Receipts uses your photos so you can attach evidence to an entry or set your profile photo.",
+          "cameraPermission": "Receipts uses your camera so you can photograph evidence for an entry or take your profile photo.",
           "microphonePermission": false
+        }
+      ],
+      "expo-sharing",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Receipts uses your photos so you can attach evidence to an entry or set your profile photo.",
+          "savePhotosPermission": "Receipts saves receipts and photos to your library when you ask it to.",
+          "isAccessMediaLocationEnabled": false
         }
       ]
     ],

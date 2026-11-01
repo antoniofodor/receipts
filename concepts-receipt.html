@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Receipts Thermal Concept</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --counter: #EAE9E4;
+  --paper: #FBFBF8;
+  --ink: #151515;
+  --fade: #8B8A84;
+  --rule: #CBCAC2;
+  --red: #D62A1E;
+  --lot: #151515;
+  --lot-ink: #F1F0EA;
+  --led: #FF4A3D;
+  --display: 'Archivo', 'Arial Narrow', Impact, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  --spring: cubic-bezier(.22, 1.25, .36, 1);
+  --settle: cubic-bezier(.2, .9, .3, 1.04);
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .045 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  color-scheme: light;
+}
+/* Layout: an asphalt-black page presents four phone screens printed on thermal receipt paper in black and red ink; they stack on a phone. */
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--lot); color: var(--lot-ink); font: 400 15px/1.55 var(--mono); -webkit-font-smoothing: antialiased; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+.label { font: 600 10.5px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; }
+.headline { font-family: var(--display); font-stretch: 72%; font-weight: 850; text-transform: uppercase; letter-spacing: -.01em; line-height: .9; }
+
+.intro { max-width: 1180px; margin: 0 auto; padding: 56px 20px 32px; display: grid; gap: 26px; }
+.intro .label { color: var(--led); }
+.intro h1 { margin: 12px 0 0; font-size: clamp(54px, 10vw, 104px); }
+.intro h1 span { color: var(--led); }
+.intro p { max-width: 64ch; margin: 0; color: color-mix(in srgb, var(--lot-ink) 75%, transparent); font-size: 14px; }
+.specimen { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
+.panel { border: 1px dashed color-mix(in srgb, var(--lot-ink) 28%, transparent); border-radius: 14px; padding: 18px; display: grid; gap: 14px; align-content: start; }
+.panel > .label { color: color-mix(in srgb, var(--lot-ink) 60%, transparent); }
+.swatches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.swatch { display: grid; gap: 6px; font-size: 10.5px; line-height: 1.3; color: color-mix(in srgb, var(--lot-ink) 62%, transparent); }
+.swatch i { display: block; height: 40px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--lot-ink) 16%, transparent); }
+.swatch b { font-weight: 600; color: var(--lot-ink); }
+.type-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 1px dashed color-mix(in srgb, var(--lot-ink) 18%, transparent); padding-bottom: 10px; }
+.type-row:last-child { border: 0; padding: 0; }
+.type-row small { font-size: 10.5px; color: color-mix(in srgb, var(--lot-ink) 55%, transparent); white-space: nowrap; }
+.try { margin: 0; font-size: 13.5px; color: var(--lot-ink); }
+
+.phones { max-width: 1640px; margin: 0 auto; padding: 8px 16px 40px; display: flex; flex-wrap: wrap; justify-content: center; gap: 40px 32px; }
+figure { margin: 0; display: grid; gap: 14px; justify-items: center; }
+figcaption { text-align: center; max-width: 340px; display: grid; gap: 4px; }
+figcaption b { font-family: var(--display); font-stretch: 72%; font-weight: 850; font-size: 26px; text-transform: uppercase; line-height: 1; }
+figcaption span { font-size: 12.5px; color: color-mix(in srgb, var(--lot-ink) 65%, transparent); }
+
+.phone { width: min(372px, calc(100vw - 32px)); height: 780px; border-radius: 52px; border: 10px solid #000; background: var(--counter); color: var(--ink); position: relative; overflow: hidden; box-shadow: 0 40px 80px -30px rgba(0, 0, 0, .8), 0 0 0 1px rgba(255, 255, 255, .08); }
+.island { position: absolute; top: 10px; left: 50%; translate: -50% 0; width: 110px; height: 32px; border-radius: 20px; background: #000; z-index: 5; }
+.screen { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; padding: 0 16px 120px; scrollbar-width: none; }
+.screen::-webkit-scrollbar { display: none; }
+.content { display: grid; gap: 16px; }
+
+.appbar { position: sticky; top: 0; z-index: 3; margin: 0 -16px; padding: 58px 20px 14px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; background: color-mix(in srgb, var(--counter) 82%, transparent); backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2); border-bottom: 1px solid transparent; transition: border-color .25s var(--ease), padding .3s var(--ease); }
+.appbar.scrolled { border-bottom-color: var(--rule); padding-top: 50px; padding-bottom: 10px; }
+.appbar .label { color: var(--fade); }
+.appbar h2 { margin: 8px 0 0; font-size: 46px; transition: font-size .3s var(--ease); }
+.appbar.scrolled h2 { font-size: 30px; }
+.square { width: 44px; height: 44px; border-radius: 12px; border: 0; display: grid; place-items: center; background: var(--ink); color: var(--paper); transition: transform .35s var(--spring); }
+.square:active { transform: scale(.9); }
+.back { border: 0; background: none; padding: 0; display: flex; align-items: center; gap: 2px; font: 600 12px var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+.textbtn { border: 0; background: none; padding: 0; font: 600 11px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--fade); }
+
+.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+.section-label { display: flex; align-items: center; gap: 10px; color: var(--fade); margin-top: 6px; }
+.section-label::after { content: ''; flex: 1; border-top: 1.5px dashed var(--rule); }
+.section-label b { color: var(--red); font-weight: 700; }
+
+.receipt-wrap { filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .06)) drop-shadow(0 10px 18px rgba(0, 0, 0, .07)); transition: transform .35s var(--spring); }
+.receipt-wrap.pressable:active { transform: scale(.985); }
+.receipt { position: relative; background: var(--grain), var(--paper); padding: 16px 16px 24px; display: grid; gap: 12px; -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 12px 100%; mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 12px 100%; }
+.receipt.both-edges { padding-top: 24px; -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% 100% / 12px 51% repeat-x, conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) 50% 0 / 12px 51% repeat-x; mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% 100% / 12px 51% repeat-x, conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) 50% 0 / 12px 51% repeat-x; }
+.txn { display: flex; justify-content: space-between; font-size: 10.5px; letter-spacing: .08em; color: var(--fade); }
+.who { display: flex; align-items: center; gap: 10px; }
+.avatar { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; flex: none; color: #fff; font: 800 13px/1 var(--mono); }
+.avatar.sm { width: 26px; height: 26px; border-radius: 7px; font-size: 11px; }
+.who-text { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.names { font-weight: 700; font-size: 13.5px; text-transform: uppercase; letter-spacing: .02em; line-height: 1.2; }
+.names .arrow { color: var(--fade); font-weight: 500; }
+.status { font: 700 9.5px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; padding: 4px 6px 3px; border-radius: 4px; justify-self: start; transition: background-color .25s, color .25s; }
+.status.pending { color: var(--fade); border: 1px dashed var(--rule); }
+.status.approved { background: var(--ink); color: var(--paper); }
+.status.declined { color: var(--red); border: 1px solid var(--red); }
+
+.dash { border-top: 1.5px dashed var(--rule); }
+.line-item { display: flex; align-items: baseline; gap: 8px; }
+.line-item .rule { font: 600 15px/1.3 var(--mono); text-transform: uppercase; letter-spacing: .01em; }
+.leader { flex: 1; min-width: 14px; border-bottom: 2px dotted var(--rule); translate: 0 -4px; }
+.pts { font: 800 20px/1 var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -.03em; white-space: nowrap; }
+.pts.minus { color: var(--red); }
+.pts.struck { text-decoration: line-through; text-decoration-thickness: 2px; color: var(--fade); }
+.note { margin: 0; font-size: 13px; line-height: 1.55; color: color-mix(in srgb, var(--ink) 78%, transparent); }
+
+.photo { border-radius: 8px; aspect-ratio: 16 / 10; position: relative; overflow: hidden; background:
+  radial-gradient(55% 45% at 72% 30%, rgba(255, 214, 150, .55), transparent 60%),
+  radial-gradient(35% 30% at 18% 72%, rgba(214, 42, 30, .35), transparent 70%),
+  radial-gradient(30% 30% at 50% 88%, rgba(255, 255, 240, .2), transparent 70%),
+  linear-gradient(160deg, #34342F, #121212 72%); }
+.photo::after { content: attr(data-caption); position: absolute; left: 8px; bottom: 8px; font: 700 9.5px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: #fff; padding: 5px 7px; border-radius: 4px; background: rgba(0, 0, 0, .55); }
+.photo.tall { aspect-ratio: 4 / 3.3; border-radius: 14px; }
+
+.votes { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; overflow: hidden; max-height: 60px; transition: max-height .45s var(--settle), opacity .2s var(--ease), margin .45s var(--settle); }
+.votes.done { opacity: 0; max-height: 0; margin-top: -12px; pointer-events: none; }
+.btn { height: 46px; border-radius: 10px; border: 1.5px solid var(--ink); background: transparent; font: 700 12.5px var(--mono); letter-spacing: .12em; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 6px; transition: transform .35s var(--spring); }
+.btn:active { transform: scale(.96); }
+.btn.primary { background: var(--ink); color: var(--paper); }
+.btn.block { width: 100%; height: 56px; border-radius: 14px; font-size: 13px; }
+
+.foot { display: flex; align-items: center; justify-content: space-between; color: var(--fade); }
+.comments-link { display: flex; align-items: center; gap: 6px; font: 700 12px var(--mono); border: 0; background: none; padding: 0; color: var(--fade); }
+.foot-end { display: flex; align-items: center; gap: 10px; }
+.ticks { display: flex; gap: 3px; }
+.ticks i { width: 8px; height: 8px; border-radius: 2px; border: 1.5px solid var(--rule); transition: background-color .2s, border-color .2s; }
+.ticks i.on { background: var(--ink); border-color: var(--ink); }
+.ticks i.pop { animation: pop .45s var(--spring); }
+.my-vote { color: var(--ink); display: grid; }
+.my-vote.no { color: var(--red); }
+.my-vote.pop { animation: pop .5s var(--spring); }
+
+.stamp { position: absolute; right: 14px; top: 44px; padding: 7px 10px 6px; border: 3px double currentColor; border-radius: 4px; font: 800 17px/1 var(--mono); letter-spacing: .18em; color: var(--red); rotate: -7deg; opacity: .85; pointer-events: none; mix-blend-mode: multiply; }
+.stamp.land { animation: stamp .5s var(--settle) both; }
+
+.haptic { position: absolute; left: 50%; bottom: 104px; translate: -50% 0; z-index: 6; padding: 8px 12px; border-radius: 999px; background: rgba(0, 0, 0, .85); color: #fff; font: 700 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; opacity: 0; pointer-events: none; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.haptic::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--led); box-shadow: 0 0 0 4px rgba(255, 74, 61, .25); }
+.haptic.show { animation: toast 1.4s var(--ease) both; }
+
+.tabbar { position: absolute; left: 0; right: 0; bottom: 0; z-index: 4; padding: 10px 18px 30px; display: grid; grid-template-columns: repeat(4, 1fr); background: color-mix(in srgb, var(--counter) 80%, transparent); backdrop-filter: blur(20px) saturate(1.3); -webkit-backdrop-filter: blur(20px) saturate(1.3); border-top: 1px solid var(--rule); }
+.tab { display: grid; justify-items: center; gap: 5px; font: 700 9px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--fade); position: relative; }
+.tab.on { color: var(--ink); }
+.tab .ic { width: 23px; height: 23px; }
+.badge { position: absolute; top: -4px; left: calc(50% + 6px); min-width: 17px; height: 17px; padding: 0 5px; border-radius: 5px; background: var(--red); color: #fff; font: 800 10px/17px var(--mono); text-align: center; }
+.badge.pop { animation: pop .5s var(--spring); }
+.badge.gone { animation: shrink .35s var(--ease) both; }
+
+.appear > * { animation: print .7s var(--settle) both; }
+.appear > *:nth-child(2) { animation-delay: .07s; }
+.appear > *:nth-child(3) { animation-delay: .14s; }
+.appear > *:nth-child(4) { animation-delay: .21s; }
+.appear > *:nth-child(5) { animation-delay: .28s; }
+.appear > *:nth-child(6) { animation-delay: .35s; }
+.appear > *:nth-child(n + 7) { animation-delay: .42s; }
+
+.store { text-align: center; display: grid; gap: 4px; }
+.store .headline { font-size: 34px; }
+.store small { font-size: 10.5px; letter-spacing: .1em; color: var(--fade); text-transform: uppercase; }
+.cols { display: flex; justify-content: space-between; font: 700 9.5px var(--mono); letter-spacing: .14em; color: var(--fade); }
+.rows { position: relative; display: grid; }
+.row { display: flex; align-items: center; gap: 9px; padding: 10px 0; background: var(--paper); }
+.rank { width: 20px; font: 700 12px var(--mono); color: var(--fade); }
+.row.first .rank { color: var(--red); }
+.row .who-text { flex: 0 1 auto; }
+.row .pts { font-size: 17px; }
+.sub { font-size: 10.5px; color: var(--fade); text-transform: uppercase; letter-spacing: .04em; }
+.chev { color: var(--rule); width: 16px; height: 16px; }
+.sum { display: flex; align-items: baseline; gap: 8px; font: 700 12px var(--mono); letter-spacing: .14em; }
+.sum.big .pts { font-size: 22px; }
+.thanks { text-align: center; font: 700 11px var(--mono); letter-spacing: .2em; color: var(--fade); }
+.barcode { height: 46px; display: flex; align-items: stretch; justify-content: center; gap: 0; }
+.barcode i { background: var(--ink); }
+.barcode-num { text-align: center; font-size: 10px; letter-spacing: .35em; color: var(--fade); margin-top: -6px; }
+
+.pump { background: #0E0E0E; border-radius: 14px; padding: 14px 16px; display: grid; gap: 6px; box-shadow: inset 0 0 0 1px #2A2A2A, inset 0 8px 20px rgba(0, 0, 0, .6); }
+.pump .label { color: #7C7A72; display: flex; justify-content: space-between; }
+.pump-digits { font: 700 44px/1 var(--mono); letter-spacing: .02em; color: var(--led); text-shadow: 0 0 10px rgba(255, 74, 61, .55), 0 0 2px rgba(255, 74, 61, .9); font-variant-numeric: tabular-nums; text-align: right; overflow: hidden; }
+.pump-digits.plus { color: #F1F0EA; text-shadow: 0 0 10px rgba(241, 240, 234, .35); }
+.pump-digits.up { animation: roll-up .3s var(--settle); }
+.pump-digits.down { animation: roll-down .3s var(--settle); }
+
+.detail { display: grid; gap: 7px; }
+.detail .line-item { font-size: 12.5px; }
+.detail .line-item span:first-child { color: var(--fade); letter-spacing: .08em; text-transform: uppercase; }
+.detail .line-item b { font-weight: 700; text-transform: uppercase; text-align: right; }
+
+.thread { display: grid; gap: 12px; }
+.comment { display: flex; gap: 10px; border: 0; background: none; padding: 0; text-align: left; transition: transform .3s var(--spring), opacity .3s; }
+.comment:active { transform: scale(.98); }
+.comment .body { display: grid; gap: 2px; flex: 1; }
+.comment .head { display: flex; gap: 8px; align-items: baseline; font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.comment .head span { font-weight: 500; color: var(--fade); }
+.comment p { margin: 0; font-size: 13.5px; line-height: 1.5; }
+.comment.sending { opacity: .5; }
+.replies { margin-left: 12px; padding-left: 14px; border-left: 1.5px dashed var(--rule); display: grid; gap: 12px; }
+.reply-box { display: flex; align-items: center; gap: 10px; animation: print .45s var(--settle) both; }
+.field { flex: 1; min-width: 0; height: 42px; border-radius: 10px; border: 1.5px solid var(--rule); background: var(--paper); padding: 0 12px; font-size: 13px; outline: none; transition: border-color .2s; }
+.field:focus { border-color: var(--ink); }
+.field::placeholder { color: var(--fade); }
+.cancel { border: 0; background: none; padding: 0; font: 700 10px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--fade); }
+.composer { position: absolute; left: 0; right: 0; bottom: 0; z-index: 4; padding: 12px 16px 30px; background: color-mix(in srgb, var(--counter) 82%, transparent); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--rule); display: grid; gap: 6px; }
+.composer .field { height: 46px; border-radius: 12px; }
+.composer small { font: 700 9px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--fade); text-align: center; }
+.new { animation: print .5s var(--settle) both; }
+
+.chips { display: flex; gap: 12px; overflow-x: auto; margin: 0 -16px; padding: 4px 16px 6px; scrollbar-width: none; }
+.chip { border: 0; background: none; padding: 0; display: grid; justify-items: center; gap: 6px; font: 700 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--fade); flex: none; }
+.chip .avatar { width: 50px; height: 50px; border-radius: 14px; font-size: 17px; transition: box-shadow .35s var(--spring), transform .35s var(--spring); }
+.chip.on { color: var(--ink); }
+.chip.on .avatar { box-shadow: 0 0 0 2.5px var(--counter), 0 0 0 4.5px var(--ink); transform: scale(1.04); }
+.search { display: flex; align-items: center; gap: 8px; color: var(--fade); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; padding-bottom: 10px; border-bottom: 1.5px dashed var(--rule); }
+.rule-row { width: 100%; border: 0; background: none; padding: 11px 0; display: flex; align-items: baseline; gap: 8px; text-align: left; position: relative; }
+.rule-row .rule { font: 600 13px/1.3 var(--mono); text-transform: uppercase; }
+.rule-row .pts { font-size: 14px; }
+.rule-row::before { content: '›'; position: absolute; left: -12px; font-weight: 800; color: var(--red); opacity: 0; translate: -4px 0; transition: opacity .2s, translate .35s var(--spring); }
+.rule-row.on::before { opacity: 1; translate: 0 0; }
+.rule-row.on .rule { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.stepper { display: grid; grid-template-columns: 52px 1fr 52px; align-items: center; gap: 12px; }
+.step { height: 52px; border-radius: 12px; border: 1.5px solid var(--ink); background: var(--paper); font: 700 22px/1 var(--mono); display: grid; place-items: center; transition: transform .3s var(--spring); }
+.step:active { transform: scale(.88); }
+.hint { text-align: center; font-size: 11px; color: var(--fade); margin: -6px 0 0; text-transform: uppercase; letter-spacing: .06em; }
+.add-photo { height: 60px; border-radius: 12px; border: 1.5px dashed var(--rule); background: transparent; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--fade); font: 700 11px var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+textarea.field { height: 80px; padding: 12px; resize: none; }
+.dock { position: absolute; left: 0; right: 0; bottom: 0; z-index: 4; padding: 12px 16px 30px; background: linear-gradient(to top, var(--counter) 70%, transparent); }
+.replay { justify-self: center; border: 1px dashed color-mix(in srgb, var(--lot-ink) 40%, transparent); background: transparent; color: var(--lot-ink); border-radius: 10px; padding: 9px 16px; font: 700 11px var(--mono); letter-spacing: .14em; text-transform: uppercase; transition: transform .3s var(--spring); }
+.replay:active { transform: scale(.95); }
+
+.motion { max-width: 1180px; margin: 0 auto; padding: 8px 20px 72px; display: grid; gap: 18px; }
+.motion h3 { margin: 0; font-size: 44px; }
+.motion-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.motion ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 13px; color: color-mix(in srgb, var(--lot-ink) 80%, transparent); }
+.motion li b { color: var(--lot-ink); }
+
+@keyframes print { from { clip-path: inset(0 0 100% 0); transform: translateY(-10px); } to { clip-path: inset(-40px); transform: none; } }
+@keyframes pop { 0% { transform: scale(.4); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+@keyframes shrink { to { transform: scale(0); opacity: 0; } }
+@keyframes stamp { 0% { opacity: 0; transform: scale(2.2); filter: blur(2px); } 55% { opacity: .9; transform: scale(.93); filter: blur(0); } 100% { opacity: .85; transform: scale(1); } }
+@keyframes toast { 0% { opacity: 0; transform: translateY(8px); } 15%, 75% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-4px); } }
+@keyframes roll-up { from { opacity: 0; transform: translateY(18px); } }
+@keyframes roll-down { from { opacity: 0; transform: translateY(-18px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .15s !important; }
+}
+</style>
+</head>
+<body>
+
+<section class="intro">
+  <div>
+    <div class="label">Receipts · UI concept 02</div>
+    <h1 class="headline">Pump 04 · <span>Thermal</span></h1>
+  </div>
+  <p>A gas station receipt, done properly. Thermal paper on a grey counter, black and red printer ink, everything set in monospace, and the card terminal's own words: APPROVED, DECLINED. Entries feed out of the printer as they arrive, points sit on a pump display, and the board is the whole night's receipt, barcode and all.</p>
+  <div class="specimen">
+    <div class="panel">
+      <div class="label">Palette</div>
+      <div class="swatches">
+        <div class="swatch"><i style="background:#EAE9E4"></i><b>Counter</b>#EAE9E4</div>
+        <div class="swatch"><i style="background:#FBFBF8"></i><b>Thermal</b>#FBFBF8</div>
+        <div class="swatch"><i style="background:#151515"></i><b>Ink</b>#151515</div>
+        <div class="swatch"><i style="background:#8B8A84"></i><b>Faded ink</b>#8B8A84</div>
+        <div class="swatch"><i style="background:#D62A1E"></i><b>Red ink</b>#D62A1E</div>
+        <div class="swatch"><i style="background:#0E0E0E;box-shadow:inset 0 0 0 10px #0E0E0E,inset 0 0 18px #FF4A3D"></i><b>Pump LED</b>#FF4A3D</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="label">Type</div>
+      <div class="type-row"><span class="headline" style="font-size:40px">Log points</span><small>Archivo, condensed</small></div>
+      <div class="type-row"><span style="font-weight:600;text-transform:uppercase">Asleep before midnight</span><small>JetBrains Mono</small></div>
+      <div class="type-row"><span style="font-size:13px">Out cold on the hotel sofa by 11:40.</span><small>notes</small></div>
+      <div class="type-row"><span style="font:800 24px var(--mono);color:var(--red)">−15 · +10</span><small>points</small></div>
+    </div>
+    <div class="panel">
+      <div class="label">Try it</div>
+      <p class="try">Tap Approve on Kev's entry for the stamp. Press return in the comment box to post, or tap a comment to reply. Replay the board to watch the night print. Step the points on the pump.</p>
+    </div>
+  </div>
+</section>
+
+<section class="phones">
+
+  <figure>
+    <div class="phone" id="feed-phone">
+      <div class="island"></div>
+      <div class="screen">
+        <header class="appbar">
+          <div><div class="label">Lisbon · Day 2 · 23:41</div><h2 class="headline">Feed</h2></div>
+          <button class="square" aria-label="Log points"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+        </header>
+        <div class="content appear" id="feed">
+          <div class="section-label label">Awaiting your vote <b id="awaiting-count">(2)</b></div>
+
+          <div class="receipt-wrap pressable">
+            <article class="receipt" id="kev-card">
+              <div class="txn"><span>TXN #1187</span><span>23:29</span></div>
+              <div class="who">
+                <div class="avatar" style="background:#C4831F">KV</div>
+                <div class="who-text">
+                  <div class="names">Tommo <span class="arrow">→</span> Kev</div>
+                  <span class="status pending" id="kev-status">Pending 2/3</span>
+                </div>
+              </div>
+              <div class="dash"></div>
+              <div class="line-item"><span class="rule">Asleep before midnight</span><span class="leader"></span><span class="pts minus">−15</span></div>
+              <p class="note">Out cold on the hotel sofa by 11:40, shoes still on.</p>
+              <div class="photo" data-caption="2 photos"></div>
+              <div class="votes" id="kev-votes">
+                <button class="btn" data-vote="no">Decline</button>
+                <button class="btn primary" data-vote="yes">Approve</button>
+              </div>
+              <div class="foot">
+                <button class="comments-link"><svg class="ic" viewBox="0 0 24 24"><path d="M4 5h16v11H9.5L5 19.5V16H4z"/></svg>3</button>
+                <div class="foot-end"><span class="ticks" id="kev-ticks"><i class="on"></i><i class="on"></i><i></i></span><span id="kev-my"></span></div>
+              </div>
+            </article>
+          </div>
+
+          <div class="receipt-wrap pressable">
+            <article class="receipt" id="marco-card">
+              <div class="txn"><span>TXN #1185</span><span>23:10</span></div>
+              <div class="who">
+                <div class="avatar" style="background:#4B6B3C">MA</div>
+                <div class="who-text">
+                  <div class="names">Sully <span class="arrow">→</span> Marco</div>
+                  <span class="status pending">Pending 0/3</span>
+                </div>
+              </div>
+              <div class="dash"></div>
+              <div class="line-item"><span class="rule">Drinking from a straw</span><span class="leader"></span><span class="pts minus">−5</span></div>
+              <div class="votes" id="marco-votes">
+                <button class="btn" data-vote="no">Decline</button>
+                <button class="btn primary" data-vote="yes">Approve</button>
+              </div>
+              <div class="foot">
+                <button class="comments-link"><svg class="ic" viewBox="0 0 24 24"><path d="M4 5h16v11H9.5L5 19.5V16H4z"/></svg></button>
+                <div class="foot-end"><span class="ticks" id="marco-ticks"><i></i><i></i><i></i></span><span id="marco-my"></span></div>
+              </div>
+            </article>
+          </div>
+
+          <div class="section-label label">Earlier tonight</div>
+
+          <div class="receipt-wrap pressable">
+            <article class="receipt">
+              <div class="txn"><span>TXN #1179</span><span>22:14</span></div>
+              <div class="who">
+                <div class="avatar" style="background:#2F4C7A">DV</div>
+                <div class="who-text">
+                  <div class="names">Dev <span class="arrow">· self-claim</span></div>
+                  <span class="status approved">Approved</span>
+                </div>
+              </div>
+              <div class="dash"></div>
+              <div class="line-item"><span class="rule">Karaoke, full song</span><span class="leader"></span><span class="pts">+10</span></div>
+              <p class="note">Bohemian Rhapsody. All of it. The bar joined in for the second half.</p>
+              <div class="foot">
+                <button class="comments-link"><svg class="ic" viewBox="0 0 24 24"><path d="M4 5h16v11H9.5L5 19.5V16H4z"/></svg>7</button>
+                <span class="my-vote" aria-label="You approved this"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.6 2.5L16 9.5"/></svg></span>
+              </div>
+            </article>
+          </div>
+
+          <div class="receipt-wrap pressable">
+            <article class="receipt">
+              <div class="txn"><span>TXN #1171</span><span>21:02</span></div>
+              <div class="who">
+                <div class="avatar" style="background:#7A3E6B">JO</div>
+                <div class="who-text">
+                  <div class="names">Dev <span class="arrow">→</span> Jonno</div>
+                  <span class="status declined">Declined</span>
+                </div>
+              </div>
+              <div class="dash"></div>
+              <div class="line-item"><span class="rule">Late to a group plan</span><span class="leader"></span><span class="pts struck">−5</span></div>
+              <div class="foot">
+                <button class="comments-link"><svg class="ic" viewBox="0 0 24 24"><path d="M4 5h16v11H9.5L5 19.5V16H4z"/></svg>2</button>
+                <span class="my-vote no" aria-label="You declined this"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg></span>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+      <nav class="tabbar">
+        <div class="tab on"><svg class="ic" viewBox="0 0 24 24"><path d="M6 3h12v18l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5L6 21zM9 8h6M9 12h6M9 16h3"/></svg>Feed<span class="badge" id="feed-badge">2</span></div>
+        <div class="tab"><svg class="ic" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M9 20h6"/></svg>Board</div>
+        <div class="tab"><svg class="ic" viewBox="0 0 24 24"><path d="M6 4h9a3 3 0 0 1 3 3v13H9a3 3 0 0 1-3-3zM6 17a3 3 0 0 1 3-3h9"/></svg>Rules</div>
+        <div class="tab"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>Me</div>
+      </nav>
+      <div class="haptic"></div>
+    </div>
+    <figcaption><b>Feed</b><span>Entries print out one after another. Approve Kev's to settle the vote; the red APPROVED stamp lands with a success buzz.</span></figcaption>
+    <button class="replay" data-replay="feed-phone">Reprint</button>
+  </figure>
+
+  <figure>
+    <div class="phone" id="entry-phone">
+      <div class="island"></div>
+      <div class="screen">
+        <header class="appbar">
+          <button class="back"><svg class="ic" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>Feed</button>
+          <span class="label" style="color:var(--fade)">TXN #1187</span>
+        </header>
+        <div class="content appear">
+          <div class="photo tall" data-caption="Photo 1 of 2"></div>
+          <div class="receipt-wrap">
+            <article class="receipt">
+              <div class="who">
+                <div class="avatar" style="background:#C4831F">KV</div>
+                <div class="who-text">
+                  <div class="names">Tommo <span class="arrow">→</span> Kev</div>
+                  <span class="status pending">Pending 2/3</span>
+                </div>
+              </div>
+              <div class="dash"></div>
+              <div class="line-item"><span class="rule">Asleep before midnight</span><span class="leader"></span><span class="pts minus">−15</span></div>
+              <p class="note">Out cold on the hotel sofa by 11:40, shoes still on.</p>
+              <div class="dash"></div>
+              <div class="detail">
+                <div class="line-item"><span>Filed</span><span class="leader"></span><b>23:29 · Tommo</b></div>
+                <div class="line-item"><span>Approved by</span><span class="leader"></span><b>Sully, Dev</b></div>
+                <div class="line-item"><span>Needs</span><span class="leader"></span><b>1 more</b></div>
+              </div>
+              <div class="barcode" data-seed="1187"></div>
+              <div class="barcode-num">0042 1187</div>
+            </article>
+          </div>
+          <div class="section-label label">Comments <b id="comment-count">(3)</b></div>
+          <div class="thread" id="threads">
+            <div class="thread" data-thread>
+              <button class="comment" data-author="Dev">
+                <div class="avatar sm" style="background:#2F4C7A">DV</div>
+                <div class="body"><div class="head">Dev <span>8m</span></div><p>Resting his eyes, apparently.</p></div>
+              </button>
+              <div class="replies">
+                <button class="comment" data-author="Kev">
+                  <div class="avatar sm" style="background:#C4831F">KV</div>
+                  <div class="body"><div class="head">Kev <span>6m</span></div><p>I was literally resting my eyes</p></div>
+                </button>
+              </div>
+            </div>
+            <div class="thread" data-thread>
+              <button class="comment" data-author="Marco">
+                <div class="avatar sm" style="background:#4B6B3C">MA</div>
+                <div class="body"><div class="head">Marco <span>4m</span></div><p>Photo or it didn't happen</p></div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <form class="composer" id="composer">
+        <input class="field" id="comment-input" placeholder="Add a comment" aria-label="Comment" enterkeyhint="send" autocomplete="off">
+        <small>Return key sends</small>
+      </form>
+    </div>
+    <figcaption><b>Entry</b><span>The full receipt, barcode included. The bottom box comments on the post; tap a comment to reply in its thread.</span></figcaption>
+    <button class="replay" data-replay="entry-phone">Reprint</button>
+  </figure>
+
+  <figure>
+    <div class="phone" id="board-phone">
+      <div class="island"></div>
+      <div class="screen">
+        <header class="appbar">
+          <div><div class="label">6 players · 24 entries</div><h2 class="headline">Board</h2></div>
+        </header>
+        <div class="content appear">
+          <div class="pump">
+            <div class="label"><span>Pump 04 · Tab total</span><span>PTS</span></div>
+            <div class="pump-digits plus" id="board-total">0</div>
+          </div>
+          <div class="receipt-wrap">
+            <article class="receipt both-edges">
+              <div class="store">
+                <span class="headline">Receipts</span>
+                <small>Trip #0042 · Lisbon</small>
+                <small>11/01/26 · 23:41 · Reg 02</small>
+              </div>
+              <div class="dash"></div>
+              <div class="cols"><span>#  Player</span><span>Pts</span></div>
+              <div class="rows" id="board-rows"></div>
+              <div class="dash"></div>
+              <div class="sum">Pending<span class="leader"></span><span class="pts minus" style="font-size:14px" id="board-pending">−20</span></div>
+              <div class="sum big">Total<span class="leader"></span><span class="pts" id="board-sum">0</span></div>
+              <div class="dash"></div>
+              <div class="thanks">*** Thank you · Come again ***</div>
+              <div class="barcode" data-seed="42"></div>
+              <div class="barcode-num">0042 2311 0126</div>
+            </article>
+          </div>
+        </div>
+      </div>
+      <nav class="tabbar">
+        <div class="tab"><svg class="ic" viewBox="0 0 24 24"><path d="M6 3h12v18l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5L6 21zM9 8h6M9 12h6M9 16h3"/></svg>Feed</div>
+        <div class="tab on"><svg class="ic" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M9 20h6"/></svg>Board</div>
+        <div class="tab"><svg class="ic" viewBox="0 0 24 24"><path d="M6 4h9a3 3 0 0 1 3 3v13H9a3 3 0 0 1-3-3zM6 17a3 3 0 0 1 3-3h9"/></svg>Rules</div>
+        <div class="tab"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>Me</div>
+      </nav>
+    </div>
+    <figcaption><b>Board</b><span>The night's receipt. The pump counts up, then Kev's −15 is approved and his row slides down to its new place.</span></figcaption>
+    <button class="replay" id="board-replay">Replay the night</button>
+  </figure>
+
+  <figure>
+    <div class="phone" id="log-phone">
+      <div class="island"></div>
+      <div class="screen">
+        <header class="appbar">
+          <div><button class="textbtn">Cancel</button><h2 class="headline">Log points</h2></div>
+        </header>
+        <div class="content appear">
+          <div class="section-label label">Who</div>
+          <div class="chips" id="chips">
+            <button class="chip"><span class="avatar" style="background:#2E6B57">SU</span>Sully</button>
+            <button class="chip"><span class="avatar" style="background:#A3472E">TO</span>Tommo</button>
+            <button class="chip"><span class="avatar" style="background:#2F4C7A">DV</span>Dev</button>
+            <button class="chip on"><span class="avatar" style="background:#C4831F">KV</span>Kev</button>
+            <button class="chip"><span class="avatar" style="background:#7A3E6B">JO</span>Jonno</button>
+            <button class="chip"><span class="avatar" style="background:#4B6B3C">MA</span>Marco</button>
+          </div>
+          <div class="section-label label">What happened</div>
+          <div class="receipt-wrap">
+            <div class="receipt" id="rules">
+              <div class="search"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg>Search 22 rules</div>
+              <button class="rule-row on" data-points="-15"><span class="rule">Asleep before midnight</span><span class="leader"></span><span class="pts minus">−15</span></button>
+              <button class="rule-row" data-points="-5"><span class="rule">Drinking from a straw</span><span class="leader"></span><span class="pts minus">−5</span></button>
+              <button class="rule-row" data-points="10"><span class="rule">Karaoke, full song</span><span class="leader"></span><span class="pts">+10</span></button>
+              <button class="rule-row" data-points="-20"><span class="rule">Lost phone or key</span><span class="leader"></span><span class="pts minus">−20</span></button>
+            </div>
+          </div>
+          <div class="section-label label">Points</div>
+          <div class="stepper">
+            <button class="step" data-step="-1" aria-label="Fewer points">−</button>
+            <div class="pump"><div class="label"><span>Pump 04</span><span>PTS</span></div><div class="pump-digits" id="points-value">−15</div></div>
+            <button class="step" data-step="1" aria-label="More points">+</button>
+          </div>
+          <p class="hint">+ always moves toward positive</p>
+          <div class="section-label label">Note</div>
+          <textarea class="field" placeholder="What happened? (optional)" aria-label="Note"></textarea>
+          <button class="add-photo"><svg class="ic" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Add photo</button>
+        </div>
+      </div>
+      <div class="dock"><button class="btn primary block" id="log-button">Log −15 against Kev</button></div>
+      <div class="haptic"></div>
+    </div>
+    <figcaption><b>Log points</b><span>Pick a player and a rule, then step the points on the pump. Each step rolls the digits with a soft tick.</span></figcaption>
+    <button class="replay" data-replay="log-phone">Reprint</button>
+  </figure>
+
+</section>
+
+<section class="motion">
+  <div class="label" style="color:var(--led)">Motion and feel</div>
+  <h3 class="headline">Smooth, not cheap</h3>
+  <div class="motion-grid">
+    <div class="panel"><ul>
+      <li><b>Print.</b> New receipts feed down out of the printer, one after another on first load.</li>
+      <li><b>Stamp.</b> When your vote settles an entry, APPROVED or DECLINED is stamped on in red.</li>
+      <li><b>Press.</b> Everything you tap gives a little under your thumb and springs back.</li>
+    </ul></div>
+    <div class="panel"><ul>
+      <li><b>Light tap</b> on every press.</li>
+      <li><b>Success</b> when you approve, <b>warning</b> when you decline.</li>
+      <li><b>Soft tick</b> on each pump step and player pick.</li>
+    </ul></div>
+    <div class="panel"><ul>
+      <li><b>Pump digits</b> count and roll to new values instead of jumping.</li>
+      <li><b>Headers frost</b> and shrink once content scrolls beneath them.</li>
+      <li><b>Reduce Motion</b> on the phone turns all of it into simple fades.</li>
+    </ul></div>
+  </div>
+</section>
+
+<script>
+const MINUS = '−';
+const formatPoints = (n) => (n > 0 ? '+' + n : n < 0 ? MINUS + Math.abs(n) : '0');
+const icons = {
+  yes: '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.6 2.5L16 9.5"/></svg>',
+  no: '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>',
+};
+
+function restart(el, cls) {
+  el.classList.remove(cls);
+  void el.offsetWidth;
+  el.classList.add(cls);
+}
+
+function haptic(phone, label) {
+  const toast = phone.querySelector('.haptic');
+  if (!toast) return;
+  toast.textContent = 'Haptic · ' + label;
+  restart(toast, 'show');
+}
+
+function drawBarcodes(root) {
+  root.querySelectorAll('.barcode').forEach((code) => {
+    let seed = Number(code.dataset.seed) || 7;
+    const random = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+    code.innerHTML = '';
+    for (let i = 0; i < 58; i++) {
+      const bar = document.createElement('i');
+      bar.style.width = (random() < 0.35 ? 3 : random() < 0.5 ? 2 : 1) + 'px';
+      bar.style.marginRight = (random() < 0.5 ? 1 : 2) + 'px';
+      code.appendChild(bar);
+    }
+  });
+}
+drawBarcodes(document);
+
+document.querySelectorAll('.screen').forEach((screen) => {
+  const bar = screen.querySelector('.appbar');
+  screen.addEventListener('scroll', () => bar.classList.toggle('scrolled', screen.scrollTop > 8), { passive: true });
+});
+
+const feedPhone = document.getElementById('feed-phone');
+const feedTemplate = document.getElementById('feed').innerHTML;
+let awaiting = 2;
+
+function wireFeed() {
+  awaiting = 2;
+  setupVote('kev', { approvalsBefore: 2, needed: 3 });
+  setupVote('marco', { approvalsBefore: 0, needed: 3 });
+}
+
+function setupVote(id, { approvalsBefore, needed }) {
+  const card = document.getElementById(id + '-card');
+  card.querySelectorAll('[data-vote]').forEach((button) =>
+    button.addEventListener('click', () => {
+      const yes = button.dataset.vote === 'yes';
+      document.getElementById(id + '-votes').classList.add('done');
+      const my = document.getElementById(id + '-my');
+      my.className = 'my-vote pop' + (yes ? '' : ' no');
+      my.innerHTML = yes ? icons.yes : icons.no;
+      const status = card.querySelector('.status');
+      if (yes) {
+        const tick = document.getElementById(id + '-ticks').children[approvalsBefore];
+        tick.classList.add('on');
+        restart(tick, 'pop');
+        status.textContent = 'Pending ' + (approvalsBefore + 1) + '/' + needed;
+      }
+      if (yes && approvalsBefore + 1 === needed) {
+        status.className = 'status approved';
+        status.textContent = 'Approved';
+        const stamp = document.createElement('div');
+        stamp.className = 'stamp land';
+        stamp.textContent = 'APPROVED';
+        card.appendChild(stamp);
+      }
+      haptic(feedPhone, yes ? 'success' : 'warning');
+      awaiting -= 1;
+      document.getElementById('awaiting-count').textContent = '(' + awaiting + ')';
+      const badge = document.getElementById('feed-badge');
+      if (awaiting === 0) restart(badge, 'gone');
+      else {
+        badge.textContent = String(awaiting);
+        restart(badge, 'pop');
+      }
+    }),
+  );
+}
+
+wireFeed();
+
+const players = [
+  { name: 'Sully', initials: 'SU', color: '#2E6B57', points: 45, sub: '5 approved' },
+  { name: 'Dev', initials: 'DV', color: '#2F4C7A', points: 30, sub: '4 approved · 1 pending' },
+  { name: 'Kev', initials: 'KV', color: '#C4831F', points: 25, sub: '3 approved · 1 pending' },
+  { name: 'Tommo', initials: 'TO', color: '#A3472E', points: 20, sub: '3 approved' },
+  { name: 'Jonno', initials: 'JO', color: '#7A3E6B', points: 15, sub: '2 approved' },
+  { name: 'Marco', initials: 'MA', color: '#4B6B3C', points: -5, sub: '1 approved · 1 pending' },
+];
+const rowsEl = document.getElementById('board-rows');
+const pumpEl = document.getElementById('board-total');
+const sumEl = document.getElementById('board-sum');
+const pendingEl = document.getElementById('board-pending');
+let boardTimers = [];
+
+function countUp(el, from, to, ms) {
+  const start = performance.now();
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function frame(now) {
+    const t = reduced ? 1 : Math.min(1, (now - start) / ms);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = formatPoints(Math.round(from + (to - from) * eased));
+    if (t < 1) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+const pointsClass = (n) => 'pts' + (n < 0 ? ' minus' : '');
+
+function renderBoard(list) {
+  rowsEl.innerHTML = '';
+  list.forEach((player, i) => {
+    const row = document.createElement('div');
+    row.className = 'row' + (i === 0 ? ' first' : '');
+    row.dataset.name = player.name;
+    row.innerHTML =
+      '<span class="rank">' + String(i + 1).padStart(2, '0') + '</span>' +
+      '<span class="avatar sm" style="background:' + player.color + '">' + player.initials + '</span>' +
+      '<span class="who-text"><span class="names">' + player.name + '</span><span class="sub">' + player.sub + '</span></span>' +
+      '<span class="leader"></span>' +
+      '<span class="' + pointsClass(player.points) + '">0</span>' +
+      '<svg class="ic chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>';
+    rowsEl.appendChild(row);
+  });
+}
+
+function playBoard() {
+  boardTimers.forEach(clearTimeout);
+  boardTimers = [];
+  const list = players.map((p) => ({ ...p }));
+  renderBoard(list);
+  rowsEl.querySelectorAll('.row').forEach((row, i) => {
+    row.animate([{ clipPath: 'inset(0 0 100% 0)', transform: 'translateY(-6px)' }, { clipPath: 'inset(0 0 0 0)', transform: 'none' }], { duration: 450, delay: 200 + i * 90, easing: 'cubic-bezier(.2,.9,.3,1.04)', fill: 'backwards' });
+    countUp(row.querySelector('.pts'), 0, list[i].points, 900 + i * 90);
+  });
+  const total = list.reduce((sum, p) => sum + p.points, 0);
+  countUp(pumpEl, 0, total, 1400);
+  countUp(sumEl, 0, total, 1400);
+  pendingEl.textContent = formatPoints(-20);
+
+  boardTimers.push(setTimeout(() => {
+    const kev = list.find((p) => p.name === 'Kev');
+    const kevRow = rowsEl.querySelector('[data-name="Kev"]');
+    countUp(kevRow.querySelector('.pts'), kev.points, 10, 600);
+    countUp(pumpEl, total, total - 15, 700);
+    countUp(sumEl, total, total - 15, 700);
+    countUp(pendingEl, -20, -5, 700);
+    kev.points = 10;
+    kev.sub = '3 approved';
+    kevRow.querySelector('.sub').textContent = kev.sub;
+
+    boardTimers.push(setTimeout(() => {
+      const before = new Map([...rowsEl.children].map((row) => [row, row.getBoundingClientRect().top]));
+      list.sort((a, b) => b.points - a.points);
+      list.forEach((p, i) => {
+        const row = rowsEl.querySelector('[data-name="' + p.name + '"]');
+        row.querySelector('.rank').textContent = String(i + 1).padStart(2, '0');
+        row.classList.toggle('first', i === 0);
+        rowsEl.appendChild(row);
+      });
+      [...rowsEl.children].forEach((row) => {
+        const delta = before.get(row) - row.getBoundingClientRect().top;
+        if (delta) row.animate([{ transform: 'translateY(' + delta + 'px)' }, { transform: 'none' }], { duration: 650, easing: 'cubic-bezier(.22,1.15,.36,1)' });
+      });
+    }, 700));
+  }, 2200));
+}
+
+playBoard();
+document.getElementById('board-replay').addEventListener('click', playBoard);
+
+const threads = document.getElementById('threads');
+const countEl = document.getElementById('comment-count');
+let commentCount = 3;
+let replyBox = null;
+
+function commentElement(text) {
+  const el = document.createElement('div');
+  el.className = 'comment sending new';
+  el.innerHTML = '<div class="avatar sm" style="background:#2E6B57">SU</div><div class="body"><div class="head">You <span>Sending…</span></div><p></p></div>';
+  el.querySelector('p').textContent = text;
+  setTimeout(() => {
+    el.classList.remove('sending');
+    el.querySelector('.head span').textContent = 'now';
+  }, 900);
+  commentCount += 1;
+  countEl.textContent = '(' + commentCount + ')';
+  return el;
+}
+
+function closeReply() {
+  if (replyBox) replyBox.remove();
+  replyBox = null;
+}
+
+threads.addEventListener('click', (event) => {
+  const comment = event.target.closest('button.comment');
+  if (!comment) return;
+  closeReply();
+  const thread = comment.closest('[data-thread]');
+  let replies = thread.querySelector('.replies');
+  if (!replies) {
+    replies = document.createElement('div');
+    replies.className = 'replies';
+    thread.appendChild(replies);
+  }
+  replyBox = document.createElement('form');
+  replyBox.className = 'reply-box';
+  replyBox.innerHTML = '<input class="field" enterkeyhint="send" autocomplete="off" aria-label="Your reply"><button type="button" class="cancel">Cancel</button>';
+  const input = replyBox.querySelector('input');
+  input.placeholder = 'Reply to ' + comment.dataset.author;
+  replyBox.querySelector('.cancel').addEventListener('click', closeReply);
+  replyBox.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+    replies.insertBefore(commentElement(text), replyBox);
+    closeReply();
+  });
+  replies.appendChild(replyBox);
+  input.focus({ preventScroll: true });
+  replyBox.scrollIntoView({ block: 'center', behavior: 'smooth' });
+});
+
+document.getElementById('composer').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const input = document.getElementById('comment-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  const thread = document.createElement('div');
+  thread.className = 'thread';
+  thread.dataset.thread = '';
+  thread.appendChild(commentElement(text));
+  threads.appendChild(thread);
+  const screen = document.querySelector('#entry-phone .screen');
+  screen.scrollTo({ top: screen.scrollHeight, behavior: 'smooth' });
+});
+
+const logPhone = document.getElementById('log-phone');
+const valueEl = document.getElementById('points-value');
+const logButton = document.getElementById('log-button');
+let points = -15;
+let subject = 'Kev';
+
+function renderPoints(direction) {
+  valueEl.textContent = formatPoints(points);
+  valueEl.classList.toggle('plus', points >= 0);
+  if (direction) restart(valueEl, direction > 0 ? 'up' : 'down');
+  logButton.textContent = (points >= 0 ? 'Give ' : 'Log ') + formatPoints(points) + (points >= 0 ? ' to ' : ' against ') + subject;
+}
+
+logPhone.querySelectorAll('[data-step]').forEach((button) =>
+  button.addEventListener('click', () => {
+    const step = Number(button.dataset.step);
+    points += step;
+    renderPoints(step);
+    haptic(logPhone, 'soft tick');
+  }),
+);
+
+document.getElementById('chips').addEventListener('click', (event) => {
+  const chip = event.target.closest('.chip');
+  if (!chip) return;
+  document.querySelectorAll('#chips .chip').forEach((c) => c.classList.toggle('on', c === chip));
+  subject = chip.lastChild.textContent.trim();
+  renderPoints(0);
+  haptic(logPhone, 'soft tick');
+});
+
+document.getElementById('rules').addEventListener('click', (event) => {
+  const row = event.target.closest('.rule-row');
+  if (!row) return;
+  document.querySelectorAll('#rules .rule-row').forEach((r) => r.classList.toggle('on', r === row));
+  const next = Number(row.dataset.points);
+  const direction = Math.sign(next - points);
+  points = next;
+  renderPoints(direction);
+  haptic(logPhone, 'light');
+});
+
+logButton.addEventListener('click', () => haptic(logPhone, 'success'));
+renderPoints(0);
+
+document.querySelectorAll('[data-replay]').forEach((button) =>
+  button.addEventListener('click', () => {
+    const phone = document.getElementById(button.dataset.replay);
+    const content = phone.querySelector('.appear');
+    if (phone === feedPhone) {
+      content.innerHTML = feedTemplate;
+      const badge = document.getElementById('feed-badge');
+      badge.className = 'badge';
+      badge.textContent = '2';
+      wireFeed();
+    }
+    phone.querySelector('.screen').scrollTo({ top: 0 });
+    content.classList.remove('appear');
+    void content.offsetWidth;
+    content.classList.add('appear');
+  }),
+);
+</script>
+</body>
+</html>

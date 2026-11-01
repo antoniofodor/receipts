@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Colors, Radius } from '@/constants/theme';
+import { haptics } from '@/components/haptics';
+import { Colors, Fonts, Radius } from '@/constants/theme';
 
 type SegmentedControlProps<T extends string> = {
   options: { value: T; label: string }[];
@@ -18,7 +19,10 @@ export function SegmentedControl<T extends string>({ options, value, onChange }:
             key={option.value}
             accessibilityRole="radio"
             accessibilityState={{ selected }}
-            onPress={() => onChange(option.value)}
+            onPress={() => {
+              haptics.tick();
+              onChange(option.value);
+            }}
             style={[styles.segment, selected && styles.selected]}>
             <Text style={[styles.label, selected && styles.selectedLabel]}>{option.label}</Text>
           </Pressable>
@@ -29,9 +33,21 @@ export function SegmentedControl<T extends string>({ options, value, onChange }:
 }
 
 const styles = StyleSheet.create({
-  track: { flexDirection: 'row', backgroundColor: Colors.soft, borderRadius: Radius.sm, padding: 3 },
-  segment: { flex: 1, paddingVertical: 8, borderRadius: Radius.sm - 2, alignItems: 'center' },
-  selected: { backgroundColor: Colors.card },
-  label: { fontSize: 14, fontWeight: '600', color: Colors.muted },
-  selectedLabel: { color: Colors.accent },
+  track: {
+    flexDirection: 'row',
+    borderWidth: 1.5,
+    borderColor: Colors.ink,
+    borderRadius: Radius.md,
+    padding: 3,
+  },
+  segment: { flex: 1, paddingVertical: 9, borderRadius: Radius.md - 3, alignItems: 'center' },
+  selected: { backgroundColor: Colors.ink },
+  label: {
+    fontFamily: Fonts.bold,
+    fontSize: 11.5,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    color: Colors.muted,
+  },
+  selectedLabel: { color: Colors.onAccent },
 });

@@ -1,6 +1,9 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { Colors, Fonts, Radius } from '@/constants/theme';
+import { PressableScale } from '@/components/pressable-scale';
+import { PumpDisplay } from '@/components/receipt/pump-display';
+import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
 
 type NumberStepperProps = {
   value: number;
@@ -8,20 +11,24 @@ type NumberStepperProps = {
   max: number;
   onChange: (value: number) => void;
   label: string;
+  unit?: string;
   format?: (value: number) => string;
 };
 
-export function NumberStepper({ value, min, max, onChange, label, format = String }: NumberStepperProps) {
+// The value sits on a pump display and rolls the way it moved.
+export function NumberStepper({ value, min, max, onChange, label, unit, format = String }: NumberStepperProps) {
+  const [direction, setDirection] = useState(0);
+
+  function step(by: number) {
+    setDirection(by);
+    onChange(value + by);
+  }
+
   return (
     <View style={styles.row} accessibilityLabel={`${label}: ${format(value)}`}>
-      <StepButton
-        symbol={'−'}
-        label={`Decrease ${label}`}
-        disabled={value <= min}
-        onPress={() => onChange(value - 1)}
-      />
-      <Text style={styles.value}>{format(value)}</Text>
-      <StepButton symbol="+" label={`Increase ${label}`} disabled={value >= max} onPress={() => onChange(value + 1)} />
+      <StepButton symbol={'−'} label={`Decrease ${label}`} disabled={value <= min} onPress={() => step(-1)} />
+      <PumpDisplay label={label} unit={unit} value={format(value)} negative={value < 0} direction={direction} />
+      <StepButton symbol="+" label={`Increase ${label}`} disabled={value >= max} onPress={() => step(1)} />
     </View>
   );
 }
@@ -38,28 +45,31 @@ function StepButton({
   onPress: () => void;
 }) {
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={onPress}
       disabled={disabled}
+      pressedScale={0.88}
+      feedback="tick"
       style={[styles.button, disabled && styles.disabled]}>
       <Text style={styles.symbol}>{symbol}</Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  value: { fontFamily: Fonts.mono, fontSize: 36, fontWeight: '800', color: Colors.accent },
+  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   button: {
-    width: 48,
-    height: 48,
-    borderRadius: Radius.sm,
-    backgroundColor: Colors.soft,
+    width: 50,
+    height: 50,
+    borderRadius: Radius.md,
+    borderWidth: 1.5,
+    borderColor: Colors.ink,
+    backgroundColor: Colors.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  disabled: { opacity: 0.35 },
-  symbol: { fontSize: 24, fontWeight: '700', color: Colors.ink },
+  disabled: { opacity: 0.3 },
+  symbol: { fontFamily: Fonts.bold, fontSize: 22, color: Colors.ink },
 });

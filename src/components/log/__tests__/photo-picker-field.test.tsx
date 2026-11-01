@@ -19,7 +19,9 @@ async function renderField({ photos = [photo('x')], photosLeft = 2, onAdd = jest
 
 describe('PhotoPickerField', () => {
   beforeEach(() => {
-    jest.mocked(usePhotoPicker).mockReturnValue({ takePhoto, choosePhotos });
+    jest
+      .mocked(usePhotoPicker)
+      .mockReturnValue({ takePhoto, choosePhotos, takeProfilePhoto: jest.fn(), chooseProfilePhoto: jest.fn() });
     takePhoto.mockReset();
     choosePhotos.mockReset();
     showActionSheetMock.mockReset();

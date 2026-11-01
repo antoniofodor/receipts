@@ -11,11 +11,11 @@ export function VoteButtons({ entryId }: { entryId: string }) {
   return (
     <View style={styles.stack}>
       <View style={styles.buttons}>
-        <View style={styles.buttonSlot}>
-          <Button title="Reject" variant="secondary" onPress={() => vote(false)} disabled={busy} />
+        <View style={styles.declineSlot}>
+          <Button title="Decline" variant="secondary" onPress={() => vote(false)} disabled={busy} feedback="warning" />
         </View>
-        <View style={styles.buttonSlot}>
-          <Button title="Confirm" onPress={() => vote(true)} loading={busy} />
+        <View style={styles.approveSlot}>
+          <Button title="Approve" onPress={() => vote(true)} loading={busy} feedback="success" />
         </View>
       </View>
       <ErrorText>{error}</ErrorText>
@@ -26,5 +26,6 @@ export function VoteButtons({ entryId }: { entryId: string }) {
 const styles = StyleSheet.create({
   stack: { gap: Spacing.xs },
   buttons: { flexDirection: 'row', gap: Spacing.sm },
-  buttonSlot: { flex: 1 },
+  declineSlot: { flex: 1 },
+  approveSlot: { flex: 1.4 },
 });

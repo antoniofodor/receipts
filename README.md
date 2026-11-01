@@ -3,7 +3,7 @@
 Points app for group trips: log points with photo evidence, vote entries through, and watch a live leaderboard. iOS and Android from one Expo codebase, with Supabase as the backend.
 
 - [PLAN.md](PLAN.md): MVP scope, decisions, data model, milestones
-- [concepts.html](concepts.html): design concepts
+- [concepts-receipt.html](concepts-receipt.html): the current "Thermal" design concept ([concepts.html](concepts.html) is the earlier one)
 
 ## Setup
 

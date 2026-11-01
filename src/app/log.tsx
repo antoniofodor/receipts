@@ -5,25 +5,23 @@ import { createEntry } from '@/api/entries';
 import { entryListQueries, tripQueries } from '@/api/trip-queries';
 import { BackLink } from '@/components/back-link';
 import { Button } from '@/components/button';
-import { Card } from '@/components/card';
 import { ChosenRule } from '@/components/log/chosen-rule';
 import { PhotoPickerField } from '@/components/log/photo-picker-field';
 import { ruleFromLogParams, type LogRouteParams } from '@/components/log/log-route';
 import { PlayerPicker } from '@/components/log/player-picker';
 import { RuleKindButtons } from '@/components/log/rule-kind-buttons';
 import { RulePicker } from '@/components/log/rule-picker';
-import { NumberStepper } from '@/components/number-stepper';
 import { RulePointsFields } from '@/components/rules/rule-points-fields';
 import { Screen } from '@/components/screen';
 import { TextField } from '@/components/text-fields';
-import { ErrorText, Label, MutedText, Title } from '@/components/typography';
+import { ErrorText, SectionLabel, Title } from '@/components/typography';
 import { NOTE_MAX_LENGTH } from '@/constants/game-rules';
 import { sharedStyles } from '@/constants/styles';
 import { useAsyncAction } from '@/hooks/use-async-action';
 import { useLogEntryForm } from '@/hooks/use-log-entry-form';
 import { useInvalidateTripQueries, useTripQuery } from '@/hooks/use-trip-query';
 import { useMembership } from '@/session/session-provider';
-import { formatPoints, pluralize } from '@/utils/format';
+import { formatPoints } from '@/utils/format';
 
 export default function LogScreen() {
   const membership = useMembership();
@@ -48,14 +46,11 @@ export default function LogScreen() {
   return (
     <Screen>
       <BackLink label="Cancel" onPress={() => router.back()} />
-      <Title
-        subtitle={`Counts once ${pluralize(membership.vote_threshold, 'other player confirms', 'other players confirm')} it.`}>
-        Log points
-      </Title>
+      <Title>Log points</Title>
       <ErrorText>{players.error ?? rules.error}</ErrorText>
 
       <View style={sharedStyles.stack}>
-        <Label>Who</Label>
+        <SectionLabel>Who</SectionLabel>
         {players.data ? (
           <PlayerPicker
             players={players.data}
@@ -67,7 +62,7 @@ export default function LogScreen() {
       </View>
 
       <View style={sharedStyles.stack}>
-        <Label>Why</Label>
+        <SectionLabel>What happened</SectionLabel>
         {form.selection.type === 'none' ? (
           <>
             <RuleKindButtons value={form.ruleKind} onChange={form.setRuleKind} />
@@ -85,6 +80,7 @@ export default function LogScreen() {
         ) : (
           <ChosenRule
             title={form.selection.type === 'existing' ? form.selection.rule.title : form.selection.title}
+            points={form.points ?? 0}
             isNew={form.selection.type === 'new'}
             onChange={form.clearRule}>
             {form.selection.type === 'new' ? (
@@ -95,27 +91,11 @@ export default function LogScreen() {
                   onChangeKind={form.setNewRuleKind}
                   onChangeMagnitude={form.setNewRuleMagnitude}
                 />
-                <MutedText>Saved to the rulebook so anyone can use it next time.</MutedText>
               </>
             ) : null}
           </ChosenRule>
         )}
       </View>
-
-      {form.points !== null && form.pointsRange ? (
-        <Card>
-          <Label>Points for this entry</Label>
-          <NumberStepper
-            value={form.points}
-            min={form.pointsRange.min}
-            max={form.pointsRange.max}
-            onChange={form.setPoints}
-            label="entry points"
-            format={formatPoints}
-          />
-          <MutedText>Change it for repeat offences, like being 20 minutes late on a per-10-minutes rule.</MutedText>
-        </Card>
-      ) : null}
 
       <PhotoPickerField
         photos={form.photos}
@@ -125,7 +105,7 @@ export default function LogScreen() {
       />
 
       <View style={sharedStyles.stack}>
-        <Label>Note (optional)</Label>
+        <SectionLabel>Note (optional)</SectionLabel>
         <TextField
           value={form.note}
           onChangeText={form.setNote}

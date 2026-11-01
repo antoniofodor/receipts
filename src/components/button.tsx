@@ -1,6 +1,8 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text } from 'react-native';
 
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import type { haptics } from '@/components/haptics';
+import { PressableScale } from '@/components/pressable-scale';
+import { Colors, Radius, Spacing, Type } from '@/constants/theme';
 
 type ButtonProps = {
   title: string;
@@ -8,25 +10,34 @@ type ButtonProps = {
   variant?: 'primary' | 'secondary' | 'danger';
   loading?: boolean;
   disabled?: boolean;
+  feedback?: keyof typeof haptics;
 };
 
-export function Button({ title, onPress, variant = 'primary', loading = false, disabled = false }: ButtonProps) {
+export function Button({
+  title,
+  onPress,
+  variant = 'primary',
+  loading = false,
+  disabled = false,
+  feedback = 'tap',
+}: ButtonProps) {
   const inactive = disabled || loading;
   const textColor = variant === 'secondary' ? Colors.ink : Colors.onAccent;
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityState={{ disabled: inactive, busy: loading }}
       onPress={onPress}
       disabled={inactive}
-      style={({ pressed }) => [styles.button, styles[variant], inactive && styles.inactive, pressed && styles.pressed]}>
+      feedback={feedback}
+      style={[styles.button, styles[variant], inactive && styles.inactive]}>
       {loading ? (
         <ActivityIndicator color={textColor} />
       ) : (
-        <Text style={[styles.text, { color: textColor }]}>{title}</Text>
+        <Text style={[Type.button, { color: textColor }]}>{title}</Text>
       )}
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -34,14 +45,13 @@ const styles = StyleSheet.create({
   button: {
     minHeight: 50,
     borderRadius: Radius.md,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Spacing.lg,
   },
-  primary: { backgroundColor: Colors.accent },
-  secondary: { backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.line },
-  danger: { backgroundColor: Colors.danger },
-  inactive: { opacity: 0.45 },
-  pressed: { opacity: 0.8 },
-  text: { fontSize: 16, fontWeight: '700' },
+  primary: { backgroundColor: Colors.accent, borderColor: Colors.accent },
+  secondary: { backgroundColor: 'transparent', borderColor: Colors.ink },
+  danger: { backgroundColor: Colors.danger, borderColor: Colors.danger },
+  inactive: { opacity: 0.4 },
 });

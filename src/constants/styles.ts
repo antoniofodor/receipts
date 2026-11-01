@@ -1,12 +1,10 @@
 import { StyleSheet } from 'react-native';
 
-import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
+import { Colors, Spacing, Type } from '@/constants/theme';
 
 export const sharedStyles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   stack: { gap: Spacing.sm },
-  mono: { fontFamily: Fonts.mono },
-  list: { backgroundColor: Colors.card, borderRadius: Radius.md, overflow: 'hidden' },
   listRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -16,5 +14,5 @@ export const sharedStyles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.line,
   },
-  pointsText: { fontFamily: Fonts.mono, fontSize: 17, fontWeight: '800' },
+  pointsText: { ...Type.points, fontSize: 16 },
 });

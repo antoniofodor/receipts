@@ -1,13 +1,10 @@
-import { router } from 'expo-router';
-
 import type { Entry } from '@/api/entries';
 import { tripQueries } from '@/api/trip-queries';
 import { AnimatedListItem } from '@/components/animated-list-item';
-import { Button } from '@/components/button';
 import { EntryCard } from '@/components/feed/entry-card';
 import { InviteCard } from '@/components/invite-card';
 import { Screen } from '@/components/screen';
-import { ErrorText, Label, MutedText, Title } from '@/components/typography';
+import { ErrorText, MutedText, SectionLabel, Title } from '@/components/typography';
 import { useKeptWhileFocused } from '@/hooks/use-kept-while-focused';
 import { useTripQuery } from '@/hooks/use-trip-query';
 import { useMembership } from '@/session/session-provider';
@@ -24,8 +21,8 @@ export default function FeedScreen() {
   const stillNeedingMyVote = entriesStillNeedingMyVote(voteSection.items, membership.player_id).length;
   const hasNoEntries = feed.data !== null && feed.data.length === 0;
 
-  const renderEntry = (entry: Entry) => (
-    <AnimatedListItem key={entry.id}>
+  const renderEntry = (entry: Entry, index: number) => (
+    <AnimatedListItem key={entry.id} index={index}>
       <EntryCard entry={entry} myPlayerId={membership.player_id} votesNeeded={membership.vote_threshold} />
     </AnimatedListItem>
   );
@@ -37,8 +34,7 @@ export default function FeedScreen() {
 
   return (
     <Screen refreshing={feed.refreshing || awaiting.refreshing} onRefresh={refresh}>
-      <Title subtitle={`You're in as ${membership.player_name}`}>{membership.trip_name}</Title>
-      <Button title="Log points" onPress={() => router.push('/log')} />
+      <Title eyebrow={`${membership.trip_name} · ${membership.player_name}`}>Feed</Title>
       <ErrorText>{feed.error ?? awaiting.error}</ErrorText>
 
       {hasNoEntries ? (
@@ -50,14 +46,14 @@ export default function FeedScreen() {
 
       {voteSection.items.length > 0 ? (
         <>
-          <Label>{stillNeedingMyVote > 0 ? `Needs your vote · ${stillNeedingMyVote}` : 'Needs your vote'}</Label>
+          <SectionLabel count={stillNeedingMyVote > 0 ? stillNeedingMyVote : undefined}>Needs your vote</SectionLabel>
           {voteSection.items.map(renderEntry)}
         </>
       ) : null}
 
       {otherEntries.length > 0 ? (
         <>
-          <Label>Recent</Label>
+          <SectionLabel>Recent</SectionLabel>
           {otherEntries.map(renderEntry)}
         </>
       ) : null}

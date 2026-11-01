@@ -71,6 +71,7 @@ describe('useTripLiveUpdates', () => {
       ['comments', 'trip-1'],
       ['leaderboard', 'trip-1'],
       ['rules', 'trip-1'],
+      ['players', 'trip-1'],
     ]);
   });
 

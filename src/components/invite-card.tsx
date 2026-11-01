@@ -3,7 +3,7 @@ import { Share, StyleSheet, Text } from 'react-native';
 import type { Membership } from '@/api/trips';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
-import { Label, MutedText } from '@/components/typography';
+import { Label } from '@/components/typography';
 import { Colors, Fonts } from '@/constants/theme';
 
 export function InviteCard({ membership }: { membership: Membership }) {
@@ -19,7 +19,6 @@ export function InviteCard({ membership }: { membership: Membership }) {
       <Text style={styles.code} selectable accessibilityLabel={`Trip code ${membership.join_code.split('').join(' ')}`}>
         {membership.join_code}
       </Text>
-      <MutedText>Everyone opens the app, enters this code and taps their name.</MutedText>
       <Button title="Share code" variant="secondary" onPress={shareCode} />
     </Card>
   );
@@ -27,11 +26,10 @@ export function InviteCard({ membership }: { membership: Membership }) {
 
 const styles = StyleSheet.create({
   code: {
-    fontFamily: Fonts.mono,
+    fontFamily: Fonts.heavy,
     fontSize: 40,
-    fontWeight: '800',
     letterSpacing: 10,
-    color: Colors.accent,
+    color: Colors.ink,
     textAlign: 'center',
   },
 });

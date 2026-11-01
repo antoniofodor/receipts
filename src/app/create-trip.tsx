@@ -77,9 +77,7 @@ export default function CreateTripScreen() {
   return (
     <Screen>
       <BackLink onPress={() => router.back()} />
-      <Title subtitle="You'll get a code to send to the group. Everyone joins by tapping their name.">
-        Create a trip
-      </Title>
+      <Title>Create a trip</Title>
 
       <View style={sharedStyles.stack}>
         <Label>Trip name</Label>
@@ -106,7 +104,7 @@ export default function CreateTripScreen() {
       <Card>
         <Label>Your 4-digit PIN</Label>
         <PinField value={pin} onChangeText={setPin} accessibilityLabel="Your PIN" />
-        <MutedText>You&apos;ll need it if you switch phones.</MutedText>
+        <MutedText>You&apos;ll need it on a new phone.</MutedText>
       </Card>
 
       <ErrorText>{error}</ErrorText>

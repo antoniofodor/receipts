@@ -35,3 +35,8 @@ export function withMyVote(entry: Entry, me: Vote['voter'], confirm: boolean, th
 export function entriesStillNeedingMyVote(entries: Entry[], myPlayerId: string) {
   return entries.filter((entry) => myVotingState(entry, myPlayerId).kind === 'can-vote');
 }
+
+// Same checks as delete_entry: only the person who logged it, and only while the votes are still out.
+export function canDeleteEntry(entry: Entry, myPlayerId: string) {
+  return entry.filer.id === myPlayerId && entry.status === 'pending';
+}

@@ -73,6 +73,6 @@ const styles = StyleSheet.create({
   card: { padding: Spacing.md, gap: Spacing.sm },
   nameField: { flex: 1 },
   remove: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  removeText: { fontSize: 26, color: Colors.muted },
-  youTag: { fontFamily: Fonts.mono, fontSize: 11, color: Colors.accent, letterSpacing: 1, flex: 1 },
+  removeText: { fontFamily: Fonts.regular, fontSize: 24, color: Colors.muted },
+  youTag: { fontFamily: Fonts.bold, fontSize: 10.5, color: Colors.red, letterSpacing: 1.4, flex: 1 },
 });

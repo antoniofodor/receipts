@@ -31,15 +31,14 @@ describe('useLogEntryForm', () => {
     expect(result.current.points).toBe(5);
   });
 
-  it('resets adjusted points when the rule changes, so a penalty override never sticks to a bonus', async () => {
+  it("always counts the chosen rule's points, with nothing to adjust per entry", async () => {
     const { result } = await renderHook(() => useLogEntryForm(straw));
-    await act(async () => result.current.setPoints(-15));
-    expect(result.current.points).toBe(-15);
+    expect(result.current.points).toBe(-5);
 
     await act(async () => result.current.pickRule(karaoke));
 
     expect(result.current.points).toBe(10);
-    expect(result.current.pointsRange).toEqual({ min: 1, max: 50 });
+    expect(result.current).not.toHaveProperty('setPoints');
   });
 
   it('creates a new rule as a penalty of 5 by default, and follows kind and size changes', async () => {
@@ -59,14 +58,12 @@ describe('useLogEntryForm', () => {
     await act(async () => result.current.selectSubject('dev'));
     await act(async () => result.current.startNewRule('Ordering pineapple on pizza'));
     await act(async () => result.current.setNewRuleMagnitude(10));
-    await act(async () => result.current.setPoints(-20));
     await act(async () => result.current.setNote('Twice'));
 
     expect(result.current.toNewEntry('trip')).toEqual({
       tripId: 'trip',
       subjectId: 'dev',
       rule: { newRuleTitle: 'Ordering pineapple on pizza', newRulePoints: -10 },
-      points: -20,
       note: 'Twice',
       photos: [],
     });

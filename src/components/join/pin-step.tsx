@@ -28,7 +28,7 @@ export function PinStep({ tripName, player, pin, onChangePin, onJoin, onBack, bu
     <>
       <BackLink onPress={onBack} />
       <View style={[sharedStyles.row, { gap: Spacing.md }]}>
-        <Avatar name={player.name} color={player.color} size={48} />
+        <Avatar name={player.name} color={player.color} photoPath={player.photo_path} size={48} />
         <Title subtitle={tripName}>{player.name}</Title>
       </View>
       <Card>
@@ -40,11 +40,7 @@ export function PinStep({ tripName, player, pin, onChangePin, onJoin, onBack, bu
           autoFocus
           accessibilityLabel={isFirstJoin ? 'New PIN' : 'PIN'}
         />
-        <MutedText>
-          {isFirstJoin
-            ? "Remember it. You'll need it if you switch phones or reinstall the app."
-            : 'The PIN you chose when you first joined.'}
-        </MutedText>
+        {isFirstJoin ? <MutedText>You&apos;ll need it on a new phone.</MutedText> : null}
       </Card>
       <ErrorText>{error}</ErrorText>
       <Button

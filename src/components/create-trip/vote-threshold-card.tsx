@@ -1,6 +1,6 @@
 import { Card } from '@/components/card';
 import { NumberStepper } from '@/components/number-stepper';
-import { Label, MutedText } from '@/components/typography';
+import { Label } from '@/components/typography';
 
 export const DEFAULT_VOTE_THRESHOLD = 3;
 
@@ -19,12 +19,8 @@ export function VoteThresholdCard({ value, playerCount, onChange }: VoteThreshol
   const max = maxVoteThreshold(playerCount);
   return (
     <Card>
-      <Label>Votes needed to confirm points</Label>
+      <Label>Approvals needed</Label>
       <NumberStepper value={value} min={1} max={max} onChange={onChange} label="votes needed" />
-      <MutedText>
-        The person who logs points and the person they&apos;re about can&apos;t vote, so with {playerCount} players the
-        most is {max}.
-      </MutedText>
     </Card>
   );
 }

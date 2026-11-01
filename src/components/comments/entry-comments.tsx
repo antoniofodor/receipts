@@ -5,7 +5,7 @@ import type { Comment } from '@/api/comments';
 import { tripQueries } from '@/api/trip-queries';
 import { CommentComposer } from '@/components/comments/comment-composer';
 import { CommentThreadList } from '@/components/comments/comment-thread-list';
-import { ErrorText, Label, MutedText } from '@/components/typography';
+import { ErrorText, MutedText, SectionLabel } from '@/components/typography';
 import { sharedStyles } from '@/constants/styles';
 import { useAddComment } from '@/hooks/use-add-comment';
 import { useTripQuery } from '@/hooks/use-trip-query';
@@ -27,7 +27,7 @@ export function EntryComments({ entryId }: { entryId: string }) {
 
   return (
     <View style={sharedStyles.stack}>
-      <Label>{count > 0 ? `Comments · ${count}` : 'Comments'}</Label>
+      <SectionLabel count={count > 0 ? count : undefined}>Comments</SectionLabel>
       <ErrorText>{comments.error}</ErrorText>
       {comments.data && count === 0 ? <MutedText>No comments yet. Start the argument.</MutedText> : null}
       {comments.data ? (

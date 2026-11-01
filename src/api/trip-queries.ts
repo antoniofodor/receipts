@@ -15,8 +15,9 @@ export type TripQuery<T, Param = void> = {
 
 type AnyTripQuery = TripQuery<unknown, never>;
 
-// Everything shown on an entry card: its status, votes, photos and comment count.
-const ENTRY_TABLES: LiveTable[] = ['entries', 'votes', 'evidence', 'comments'];
+// Everything shown on an entry card: its status, votes, photos, comment count and the players' photos.
+// A deleted entry is heard about through deleted_entries, since Realtime can't route a delete to one trip.
+const ENTRY_TABLES: LiveTable[] = ['entries', 'deleted_entries', 'votes', 'evidence', 'comments', 'players'];
 
 export const tripQueries = {
   feed: { name: 'feed', fetch: getRecentEntries, refreshWhenChanged: ENTRY_TABLES },
@@ -31,10 +32,14 @@ export const tripQueries = {
     refreshWhenChanged: ENTRY_TABLES,
   },
   entry: { name: 'entry', fetch: getEntry, refreshWhenChanged: ENTRY_TABLES },
-  comments: { name: 'comments', fetch: getComments, refreshWhenChanged: ['comments'] },
-  leaderboard: { name: 'leaderboard', fetch: getLeaderboard, refreshWhenChanged: ['entries'] },
+  comments: { name: 'comments', fetch: getComments, refreshWhenChanged: ['comments', 'players'] },
+  leaderboard: {
+    name: 'leaderboard',
+    fetch: getLeaderboard,
+    refreshWhenChanged: ['entries', 'deleted_entries', 'players'],
+  },
   rules: { name: 'rules', fetch: getRules, refreshWhenChanged: ['rules'] },
-  players: { name: 'players', fetch: getPlayers, refreshWhenChanged: [] },
+  players: { name: 'players', fetch: getPlayers, refreshWhenChanged: ['players'] },
 } satisfies Record<string, AnyTripQuery>;
 
 export const allTripQueries: AnyTripQuery[] = Object.values(tripQueries);

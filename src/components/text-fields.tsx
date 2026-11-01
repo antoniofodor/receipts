@@ -1,4 +1,4 @@
-import { type Ref, use } from 'react';
+import { type Ref, use, useState } from 'react';
 import { Keyboard, StyleSheet, TextInput, type TextInputInstance, type TextInputProps } from 'react-native';
 
 import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
@@ -10,10 +10,12 @@ export const TRIP_CODE_LENGTH = 6;
 export function TextField({
   ref,
   onFocus,
+  onBlur,
   onContentSizeChange,
   ...props
 }: TextInputProps & { ref?: Ref<TextInputInstance> }) {
   const revealFocusedInput = use(RevealFocusedInputContext);
+  const [focused, setFocused] = useState(false);
   return (
     <TextInput
       ref={ref}
@@ -21,13 +23,18 @@ export function TextField({
       {...props}
       onFocus={(event) => {
         onFocus?.(event);
+        setFocused(true);
         revealFocusedInput();
+      }}
+      onBlur={(event) => {
+        onBlur?.(event);
+        setFocused(false);
       }}
       onContentSizeChange={(event) => {
         onContentSizeChange?.(event);
         if (props.multiline) revealFocusedInput();
       }}
-      style={[styles.field, props.style]}
+      style={[styles.field, focused && styles.focused, props.style]}
     />
   );
 }
@@ -91,14 +98,16 @@ export function TripCodeField({ value, onChangeText, onSubmit }: TripCodeFieldPr
 const styles = StyleSheet.create({
   field: {
     backgroundColor: Colors.card,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: Colors.line,
-    borderRadius: Radius.sm,
+    borderRadius: Radius.md,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
-    fontSize: 16,
+    fontFamily: Fonts.regular,
+    fontSize: 14,
     color: Colors.ink,
   },
-  pin: { fontFamily: Fonts.mono, fontSize: 30, letterSpacing: 14, textAlign: 'center' },
-  code: { fontFamily: Fonts.mono, fontSize: 28, letterSpacing: 8, textAlign: 'center' },
+  focused: { borderColor: Colors.ink },
+  pin: { fontFamily: Fonts.heavy, fontSize: 30, letterSpacing: 14, textAlign: 'center' },
+  code: { fontFamily: Fonts.heavy, fontSize: 28, letterSpacing: 8, textAlign: 'center' },
 });

@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
     marginLeft: Spacing.lg,
     paddingLeft: Spacing.md,
-    borderLeftWidth: 2,
+    borderLeftWidth: 1.5,
     borderLeftColor: Colors.line,
   },
 });

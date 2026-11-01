@@ -33,12 +33,42 @@ describe('trip queries', () => {
     ]);
   });
 
+  it('drops a deleted entry from every list and the board, though Realtime only reports the deletion log', () => {
+    expect(names(queriesRefreshedBy('deleted_entries'))).toEqual([
+      'awaiting-my-vote',
+      'entry',
+      'feed',
+      'leaderboard',
+      'player-entries',
+    ]);
+  });
+
+  it('refreshes everywhere an avatar shows when a player changes their photo', () => {
+    expect(names(queriesRefreshedBy('players'))).toEqual([
+      'awaiting-my-vote',
+      'comments',
+      'entry',
+      'feed',
+      'leaderboard',
+      'player-entries',
+      'players',
+    ]);
+  });
+
   it('refreshes the rulebook when a rule is added', () => {
     expect(names(queriesRefreshedBy('rules'))).toEqual(['rules']);
   });
 
   it('subscribes to each live table once', () => {
-    expect([...liveTables].sort()).toEqual(['comments', 'entries', 'evidence', 'rules', 'votes']);
+    expect([...liveTables].sort()).toEqual([
+      'comments',
+      'deleted_entries',
+      'entries',
+      'evidence',
+      'players',
+      'rules',
+      'votes',
+    ]);
   });
 
   it('keys a player-scoped query per player, under a prefix that refreshes them all', () => {

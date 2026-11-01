@@ -6,10 +6,15 @@ export type Player = {
   name: string;
   color: string;
   is_groom: boolean;
+  photo_path: string | null;
 };
 
 export async function getPlayers(tripId: string) {
   return unwrap<Player[]>(
-    await supabase.from('players').select('id, name, color, is_groom').eq('trip_id', tripId).order('position'),
+    await supabase
+      .from('players')
+      .select('id, name, color, is_groom, photo_path')
+      .eq('trip_id', tripId)
+      .order('position'),
   );
 }
