@@ -1,9 +1,13 @@
+import { useState } from 'react';
 import { Alert, Text } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { InviteCard } from '@/components/invite-card';
+import { AccountCard } from '@/components/me/account-card';
+import { LightsCard } from '@/components/me/lights-card';
 import { ProfileHeader } from '@/components/me/profile-header';
+import { RenameMeCard } from '@/components/me/rename-me-card';
 import { LineItem } from '@/components/receipt/line-item';
 import { Screen } from '@/components/screen';
 import { ErrorText, Label } from '@/components/typography';
@@ -15,6 +19,7 @@ export default function MeScreen() {
   const membership = useMembership();
   const { leave } = useSession();
   const { busy, error, run } = useAsyncAction();
+  const [editingName, setEditingName] = useState(false);
 
   function confirmLeave() {
     Alert.alert(
@@ -31,8 +36,9 @@ export default function MeScreen() {
 
   return (
     <Screen>
-      <ProfileHeader name={membership.player_name} roles={roles} />
-      <Card>
+      <ProfileHeader name={membership.player_name} roles={roles} onEditName={() => setEditingName(true)} />
+      {editingName ? <RenameMeCard onDone={() => setEditingName(false)} /> : null}
+      <Card seed="my-trip">
         <Label>Trip</Label>
         <Text style={Type.heading}>{membership.trip_name}</Text>
         <LineItem
@@ -41,6 +47,8 @@ export default function MeScreen() {
         />
       </Card>
       <InviteCard membership={membership} />
+      <AccountCard />
+      <LightsCard />
       <ErrorText>{error}</ErrorText>
       <Button title="Leave trip on this phone" variant="secondary" onPress={confirmLeave} loading={busy} />
     </Screen>

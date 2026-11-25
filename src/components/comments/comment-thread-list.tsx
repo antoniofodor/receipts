@@ -4,7 +4,8 @@ import { StyleSheet, View } from 'react-native';
 import type { Comment } from '@/api/comments';
 import { AnimatedListItem } from '@/components/animated-list-item';
 import { CommentRow } from '@/components/comments/comment-row';
-import { Colors, Spacing } from '@/constants/theme';
+import { VerticalDottedRule } from '@/components/receipt/dotted-rule-vertical';
+import { Spacing } from '@/constants/theme';
 import { toThreads } from '@/utils/comment-threads';
 
 type CommentThreadListProps = {
@@ -24,7 +25,11 @@ export function CommentThreadList({ comments, onReply, openThreadId, replyBox }:
             <View style={styles.thread}>
               <CommentRow comment={comment} onReply={onReply} />
               {replies.length > 0 || isOpen ? (
-                <View style={styles.replies} accessibilityLabel={`Replies to ${comment.author.name}`}>
+                <View
+                  collapsable={false}
+                  style={styles.replies}
+                  accessibilityLabel={`Replies to ${comment.author.name}`}>
+                  <VerticalDottedRule />
                   {replies.map((reply) => (
                     <AnimatedListItem key={reply.id}>
                       <CommentRow comment={reply} onReply={onReply} />
@@ -46,9 +51,7 @@ const styles = StyleSheet.create({
   thread: { gap: Spacing.md },
   replies: {
     gap: Spacing.md,
-    marginLeft: Spacing.lg,
+    marginLeft: Spacing.md,
     paddingLeft: Spacing.md,
-    borderLeftWidth: 1.5,
-    borderLeftColor: Colors.line,
   },
 });

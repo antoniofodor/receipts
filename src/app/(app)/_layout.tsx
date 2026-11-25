@@ -3,9 +3,10 @@ import { NativeTabs } from 'expo-router/native-tabs';
 
 import { tripQueries } from '@/api/trip-queries';
 import { haptics } from '@/components/haptics';
-import { Colors, Fonts } from '@/constants/theme';
+import { Paper, Type } from '@/constants/theme';
 import { useTripLiveUpdates } from '@/hooks/use-trip-live-updates';
 import { useTripQuery } from '@/hooks/use-trip-query';
+import { useGround } from '@/light-mode/light-mode-provider';
 import { useMembership, useSession } from '@/session/session-provider';
 import { entriesStillNeedingMyVote } from '@/utils/voting';
 
@@ -27,14 +28,21 @@ function TripTabs() {
   const awaiting = useTripQuery(tripQueries.awaitingMyVote);
   const { player_id: myPlayerId } = useMembership();
   const awaitingCount = entriesStillNeedingMyVote(awaiting.data ?? [], myPlayerId).length;
+  const ground = useGround();
+  const label = { fontFamily: Type.tabLabel.fontFamily, fontSize: Type.tabLabel.fontSize };
 
   return (
     <NativeTabs
-      backgroundColor={Colors.background}
-      indicatorColor={Colors.line}
-      badgeBackgroundColor={Colors.red}
-      labelStyle={{ default: { fontFamily: Fonts.bold }, selected: { fontFamily: Fonts.bold, color: Colors.ink } }}
-      tintColor={Colors.ink}>
+      backgroundColor={ground.navBackground}
+      shadowColor={ground.navBorder}
+      indicatorColor={ground.line}
+      badgeBackgroundColor={Paper.red}
+      iconColor={{ default: ground.navIcon, selected: ground.navActive }}
+      labelStyle={{
+        default: { ...label, color: ground.navIcon },
+        selected: { ...label, color: ground.navActive },
+      }}
+      tintColor={ground.navActive}>
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>Feed</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="scroll" md="receipt_long" />

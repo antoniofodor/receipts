@@ -51,6 +51,7 @@ export function ShareReceiptPanel({ entry, tripName }: { entry: Entry; tripName:
         />
         <Button
           title="Save receipt to Photos"
+          icon="download"
           variant="secondary"
           onPress={() =>
             act(async () => {
@@ -63,6 +64,7 @@ export function ShareReceiptPanel({ entry, tripName }: { entry: Entry; tripName:
         {entry.photos.length > 0 ? (
           <Button
             title={entry.photos.length > 1 ? 'Save original photos' : 'Save original photo'}
+            icon="download"
             variant="secondary"
             onPress={() =>
               act(async () => {

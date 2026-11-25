@@ -1,8 +1,10 @@
 import { type Ref, use, useState } from 'react';
-import { Keyboard, StyleSheet, TextInput, type TextInputInstance, type TextInputProps } from 'react-native';
+import { Keyboard, StyleSheet, Text, TextInput, View, type TextInputInstance, type TextInputProps } from 'react-native';
 
-import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
+import { makePumpStyles } from '@/components/receipt/pump-styles';
+import { Fonts, Paper, Radius, Spacing } from '@/constants/theme';
 import { RevealFocusedInputContext } from '@/hooks/use-focused-input-above-keyboard';
+import { useThemedStyles } from '@/light-mode/use-themed-styles';
 
 export const PIN_LENGTH = 4;
 export const TRIP_CODE_LENGTH = 6;
@@ -19,7 +21,7 @@ export function TextField({
   return (
     <TextInput
       ref={ref}
-      placeholderTextColor={Colors.muted}
+      placeholderTextColor={Paper.muted}
       {...props}
       onFocus={(event) => {
         onFocus?.(event);
@@ -39,30 +41,66 @@ export function TextField({
   );
 }
 
-type PinFieldProps = {
+type DigitBoxesFieldProps = {
+  length: number;
   value: string;
-  onChangeText: (pin: string) => void;
+  onChangeText: (digits: string) => void;
   hidden?: boolean;
-} & Pick<TextInputProps, 'autoFocus' | 'accessibilityLabel'>;
+  // Called once every box is filled, after the keyboard has closed.
+  onComplete?: (digits: string) => void;
+} & Pick<TextInputProps, 'autoFocus' | 'accessibilityLabel' | 'textContentType' | 'autoComplete'>;
 
+// One box per digit, drawn from the value over an invisible input (see TripCodeField).
 // The iPhone number pad has no Done key, so the keyboard closes itself on the last digit.
-export function PinField({ value, onChangeText, hidden = false, ...rest }: PinFieldProps) {
+export function DigitBoxesField({
+  length,
+  value,
+  onChangeText,
+  hidden = false,
+  onComplete,
+  ...rest
+}: DigitBoxesFieldProps) {
+  const [focused, setFocused] = useState(false);
+  const activeBox = Math.min(value.length, length - 1);
   return (
-    <TextField
-      {...rest}
-      value={value}
-      onChangeText={(text) => {
-        const pin = text.replace(/\D/g, '').slice(0, PIN_LENGTH);
-        onChangeText(pin);
-        if (pin.length === PIN_LENGTH) Keyboard.dismiss();
-      }}
-      keyboardType="number-pad"
-      maxLength={PIN_LENGTH}
-      secureTextEntry={hidden}
-      placeholder={'•'.repeat(PIN_LENGTH)}
-      style={styles.pin}
-    />
+    <View>
+      <View style={styles.digitBoxes} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+        {Array.from({ length }, (_, index) => (
+          <View key={index} style={[styles.digitBox, focused && index === activeBox && styles.focused]}>
+            <Text testID="digit-box" style={styles.digit}>
+              {value[index] === undefined ? '' : hidden ? '•' : value[index]}
+            </Text>
+          </View>
+        ))}
+      </View>
+      <TextField
+        {...rest}
+        value={value}
+        onChangeText={(text) => {
+          const digits = text.replace(/\D/g, '').slice(0, length);
+          onChangeText(digits);
+          if (digits.length === length) {
+            Keyboard.dismiss();
+            onComplete?.(digits);
+          }
+        }}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        keyboardType="number-pad"
+        maxLength={length}
+        secureTextEntry={hidden}
+        caretHidden
+        selectionColor="transparent"
+        style={styles.hiddenInput}
+      />
+    </View>
   );
+}
+
+type PinFieldProps = Omit<DigitBoxesFieldProps, 'length'>;
+
+export function PinField(props: PinFieldProps) {
+  return <DigitBoxesField length={PIN_LENGTH} {...props} />;
 }
 
 type TripCodeFieldProps = {
@@ -71,43 +109,89 @@ type TripCodeFieldProps = {
   onSubmit: () => void;
 };
 
+// The phone draws what was typed before onChangeText can uppercase it, so a lowercase letter would flash up.
+// The input's own text is invisible; the code shown glows in a pump's LED window, drawn from the cleaned value.
 export function TripCodeField({ value, onChangeText, onSubmit }: TripCodeFieldProps) {
+  const pump = useThemedStyles(makePumpStyles);
+  const [focused, setFocused] = useState(false);
+  const remaining = TRIP_CODE_LENGTH - value.length;
   return (
-    <TextField
-      value={value}
-      onChangeText={(text) =>
-        onChangeText(
-          text
-            .toUpperCase()
-            .replace(/[^A-Z]/g, '')
-            .slice(0, TRIP_CODE_LENGTH),
-        )
-      }
-      placeholder="ABCDEF"
-      autoCapitalize="characters"
-      autoCorrect={false}
-      maxLength={TRIP_CODE_LENGTH}
-      returnKeyType="go"
-      onSubmitEditing={() => value.length === TRIP_CODE_LENGTH && onSubmit()}
-      accessibilityLabel="Trip code"
-      style={styles.code}
-    />
+    <View style={pump.housing}>
+      <View
+        style={[pump.window, styles.codeWindow]}
+        importantForAccessibility="no-hide-descendants"
+        accessibilityElementsHidden>
+        <Text style={[pump.led, styles.codeText]}>
+          <Text testID="trip-code-lit">{value}</Text>
+          {remaining > 0 ? (
+            <Text testID="trip-code-unlit">
+              <Text style={focused ? styles.nextSlot : pump.unlit}>-</Text>
+              <Text style={pump.unlit}>{'-'.repeat(remaining - 1)}</Text>
+            </Text>
+          ) : null}
+        </Text>
+      </View>
+      <TextField
+        value={value}
+        onChangeText={(text) =>
+          onChangeText(
+            text
+              .toUpperCase()
+              .replace(/[^A-Z]/g, '')
+              .slice(0, TRIP_CODE_LENGTH),
+          )
+        }
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        autoCapitalize="characters"
+        autoCorrect={false}
+        autoComplete="off"
+        spellCheck={false}
+        maxLength={TRIP_CODE_LENGTH}
+        returnKeyType="go"
+        onSubmitEditing={() => value.length === TRIP_CODE_LENGTH && onSubmit()}
+        accessibilityLabel="Trip code"
+        caretHidden
+        selectionColor="transparent"
+        style={styles.hiddenInput}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   field: {
-    backgroundColor: Colors.card,
+    backgroundColor: Paper.field,
     borderWidth: 1.5,
-    borderColor: Colors.line,
+    borderColor: Paper.fieldLine,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     fontFamily: Fonts.regular,
     fontSize: 14,
-    color: Colors.ink,
+    color: Paper.ink,
   },
-  focused: { borderColor: Colors.ink },
-  pin: { fontFamily: Fonts.heavy, fontSize: 30, letterSpacing: 14, textAlign: 'center' },
-  code: { fontFamily: Fonts.heavy, fontSize: 28, letterSpacing: 8, textAlign: 'center' },
+  focused: { borderColor: Paper.ink },
+  digitBoxes: { flexDirection: 'row', justifyContent: 'center', gap: Spacing.sm },
+  digitBox: {
+    flex: 1,
+    maxWidth: 56,
+    height: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Paper.field,
+    borderWidth: 2,
+    borderColor: Paper.fieldLine,
+    borderRadius: Radius.sm,
+  },
+  digit: { fontFamily: Fonts.heavy, fontSize: 28, color: Paper.ink },
+  codeWindow: { alignItems: 'center', paddingVertical: Spacing.md },
+  codeText: { fontSize: 34, lineHeight: 42, letterSpacing: 16, marginRight: -16 },
+  nextSlot: { opacity: 0.5 },
+  hiddenInput: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    color: 'transparent',
+  },
 });

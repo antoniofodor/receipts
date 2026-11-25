@@ -8,7 +8,7 @@ const client = new pg.Client(dbConfig());
 const results = { passed: 0, failed: [] };
 
 const users = Object.fromEntries(
-  ['dev', 'jonno', 'sully', 'tommo', 'kev', 'marco', 'jonnoPhone2', 'outsider'].map((k) => [k, randomUUID()]),
+  ['dev', 'jonno', 'sully', 'tommo', 'kev', 'marco', 'jonnoPhone2', 'outsider', 'packer', 'holder', 'anonymous', 'leaver', 'renamer', 'renamerFriend'].map((k) => [k, randomUUID()]),
 );
 const PLAYER_NAMES = ['Dev', 'Jonno', 'Sully', 'Tommo', 'Kev', 'Marco'];
 
@@ -39,6 +39,16 @@ async function removeFile(path, bucket = 'evidence') {
   await client.query(`select set_config('storage.allow_delete_query', 'true', true)`);
   const { rowCount } = await client.query('delete from storage.objects where bucket_id = $1 and name = $2', [bucket, path]);
   return rowCount;
+}
+
+// For setup only the service role could do, like publishing catalog data.
+async function asAdmin(fn) {
+  await client.query('reset role');
+  try {
+    await fn();
+  } finally {
+    await client.query('set local role authenticated');
+  }
 }
 
 async function rows(sql, params = []) {
@@ -76,7 +86,8 @@ async function test(name, fn) {
 
 const shared = {};
 const playerId = (name) => shared.players[name];
-const ruleId = async (title) => (await rows('select id from public.rules where trip_id = $1 and title = $2', [shared.tripId, title]))[0].id;
+const ruleId = async (title) =>
+  (await rows('select id from public.rules where trip_id = $1 and title = $2 and not archived', [shared.tripId, title]))[0].id;
 const leaderboardRow = async (name) =>
   (await rows('select * from public.leaderboard where trip_id = $1 and name = $2', [shared.tripId, name]))[0];
 
@@ -107,7 +118,7 @@ async function run() {
       );
     });
 
-    await test('create_trip returns a join code and seeds 22 preset rules', async () => {
+    await test('create_trip returns a join code and, without packs picked, seeds the 22 classics', async () => {
       await as(users.dev);
       const r = await rpc('create_trip', {
         p_name: 'Lisbon 2026', p_player_names: PLAYER_NAMES, p_my_index: 0, p_pin: '1111', p_groom_index: 5, p_vote_threshold: 3,
@@ -119,8 +130,8 @@ async function run() {
         (await rows('select name, id from public.players where trip_id = $1', [shared.tripId])).map((p) => [p.name, p.id]),
       );
       assert.equal(r.player_id, playerId('Dev'));
-      const [{ n }] = await rows('select count(*)::int n from public.rules where trip_id = $1', [shared.tripId]);
-      assert.equal(n, 22);
+      const packs = await rows('select pack_id, count(*)::int n from public.rules where trip_id = $1 group by pack_id', [shared.tripId]);
+      assert.deepEqual(packs, [{ pack_id: 'classics', n: 22 }]);
       const [marco] = await rows('select is_groom from public.players where id = $1', [playerId('Marco')]);
       assert.equal(marco.is_groom, true);
     });
@@ -176,6 +187,274 @@ async function run() {
       );
       await expectError(() => client.query('select * from public.player_pins'), 'permission denied');
       await expectError(() => client.query(`update public.entries set status = 'confirmed'`), 'permission denied');
+    });
+
+    console.log('\nRule packs');
+
+    const packTrip = (packIds) =>
+      rpc('create_trip', { p_name: 'Packs', p_player_names: ['P', 'Q', 'R'], p_my_index: 0, p_pin: '1212', p_vote_threshold: 1, p_rule_pack_ids: packIds });
+    const tripRules = (tripId) => rows('select title, points, is_preset, pack_id from public.rules where trip_id = $1', [tripId]);
+
+    await test('any signed-in phone reads the published packs before joining a trip', async () => {
+      await as(users.packer);
+      assert.equal(await rpc('get_my_session'), null);
+      const packs = await rows('select p.id, count(r.*)::int n from public.rule_packs p join public.rule_pack_rules r on r.pack_id = p.id group by p.id');
+      const ruleCounts = Object.fromEntries(packs.map((p) => [p.id, p.n]));
+      assert.deepEqual([ruleCounts.classics, ruleCounts['cabin-weekend']], [22, 44]);
+    });
+
+    await test('clients cannot write the pack catalog', async () => {
+      await as(users.dev);
+      await expectError(() => client.query(`insert into public.rule_packs (id, name, position) values ('mine', 'Mine', 9)`), 'permission denied');
+      await expectError(() => client.query(`update public.rule_pack_rules set points = 25`), 'permission denied');
+    });
+
+    await test('create_trip copies the picked packs in order, and the first pack wins a shared rule name', async () => {
+      await as(users.packer);
+      const trip = await packTrip(['cabin-weekend', 'classics']);
+      const rules = await tripRules(trip.trip_id);
+      const namesInBothPacks = ['Asleep before midnight', 'Leaving a drink unfinished', 'Drinking from a straw'];
+      assert.equal(rules.length, 44 + 22 - namesInBothPacks.length);
+      assert.ok(rules.every((r) => r.is_preset));
+      const straw = rules.find((r) => r.title === 'Drinking from a straw');
+      assert.deepEqual([straw.points, straw.pack_id], [-10, 'cabin-weekend']);
+    });
+
+    await test('create_trip with no packs starts with an empty rulebook', async () => {
+      await as(users.packer);
+      const trip = await packTrip([]);
+      assert.equal((await tripRules(trip.trip_id)).length, 0);
+    });
+
+    await test('create_trip refuses a pack that does not exist', async () => {
+      await as(users.packer);
+      await expectError(() => packTrip(['classics', 'nope']), "That rule pack isn't available");
+    });
+
+    await test('the organiser adds a pack later, and adding it again adds nothing', async () => {
+      await as(users.packer);
+      const trip = await packTrip(['classics']);
+      assert.equal(await rpc('add_rule_pack', { p_trip_id: trip.trip_id, p_pack_id: 'cabin-weekend' }), 41);
+      assert.equal(await rpc('add_rule_pack', { p_trip_id: trip.trip_id, p_pack_id: 'cabin-weekend' }), 0);
+      const rules = await tripRules(trip.trip_id);
+      assert.equal(rules.length, 63);
+      assert.equal(rules.find((r) => r.title === 'Drinking from a straw').points, -5);
+    });
+
+    await test('a pack skips a rule the trip already made up, whatever its case', async () => {
+      await as(users.packer);
+      const trip = await packTrip([]);
+      await rpc('create_rule', { p_trip_id: trip.trip_id, p_title: 'SPILLING A DRINK', p_points: -1 });
+      assert.equal(await rpc('add_rule_pack', { p_trip_id: trip.trip_id, p_pack_id: 'cabin-weekend' }), 43);
+    });
+
+    await test('only the organiser adds packs, and outsiders cannot', async () => {
+      await as(users.jonno);
+      await expectError(() => rpc('add_rule_pack', { p_trip_id: shared.tripId, p_pack_id: 'cabin-weekend' }), 'Only the organiser can add rule packs');
+      await as(users.packer);
+      await expectError(() => rpc('add_rule_pack', { p_trip_id: shared.tripId, p_pack_id: 'cabin-weekend' }), 'not in this trip');
+    });
+
+    await test('an unpublished pack is hidden and cannot be added', async () => {
+      await asAdmin(async () => {
+        await client.query(`insert into public.rule_packs (id, name, position, published) values ('draft', 'Draft', 99, false)`);
+        await client.query(`insert into public.rule_pack_rules (pack_id, title, points, position) values ('draft', 'Secret rule', 5, 1)`);
+      });
+      await as(users.packer);
+      const trip = await packTrip([]);
+      assert.equal((await rows(`select * from public.rule_packs where id = 'draft'`)).length, 0);
+      assert.equal((await rows(`select * from public.rule_pack_rules where pack_id = 'draft'`)).length, 0);
+      await expectError(() => rpc('add_rule_pack', { p_trip_id: trip.trip_id, p_pack_id: 'draft' }), "That rule pack isn't available");
+      await expectError(() => packTrip(['draft']), "That rule pack isn't available");
+    });
+
+    await test('the organiser removes a whole pack, edited rules too, and keeps rules the trip made up', async () => {
+      await as(users.packer);
+      const trip = await packTrip(['classics']);
+      await rpc('add_rule_pack', { p_trip_id: trip.trip_id, p_pack_id: 'cabin-weekend' });
+      const [firstToArrive] = await rows(`select id from public.rules where trip_id = $1 and title = 'First to arrive'`, [trip.trip_id]);
+      await rpc('update_rule', { p_rule_id: firstToArrive.id, p_title: 'First one there', p_points: 15 });
+      await rpc('create_rule', { p_trip_id: trip.trip_id, p_title: 'Ordering pineapple on pizza', p_points: -10 });
+
+      assert.equal(await rpc('remove_rule_pack', { p_trip_id: trip.trip_id, p_pack_id: 'cabin-weekend' }), 41);
+      const rules = await rows('select title, pack_id from public.rules where trip_id = $1 and not archived', [trip.trip_id]);
+      assert.equal(rules.length, 23);
+      assert.ok(rules.every((r) => r.pack_id === 'classics' || r.title === 'Ordering pineapple on pizza'));
+      assert.equal(await rpc('remove_rule_pack', { p_trip_id: trip.trip_id, p_pack_id: 'cabin-weekend' }), 0);
+    });
+
+    await test('entries logged under a removed pack keep their points, and the pack can come back', async () => {
+      await as(users.packer);
+      const trip = await packTrip(['cabin-weekend']);
+      const [straw] = await rows(`select id from public.rules where trip_id = $1 and title = 'Drinking from a straw'`, [trip.trip_id]);
+      const [q] = await rows(`select id from public.players where trip_id = $1 and name = 'Q'`, [trip.trip_id]);
+      const entryId = await rpc('create_entry', { p_trip_id: trip.trip_id, p_subject_id: q.id, p_rule_id: straw.id });
+      await rpc('remove_rule_pack', { p_trip_id: trip.trip_id, p_pack_id: 'cabin-weekend' });
+
+      const [entry] = await rows('select e.points, r.title from public.entries e join public.rules r on r.id = e.rule_id where e.id = $1', [entryId]);
+      assert.deepEqual([entry.points, entry.title], [-10, 'Drinking from a straw']);
+      assert.equal(await rpc('add_rule_pack', { p_trip_id: trip.trip_id, p_pack_id: 'cabin-weekend' }), 44);
+    });
+
+    await test('only the organiser removes packs, and outsiders cannot', async () => {
+      await as(users.jonno);
+      await expectError(() => rpc('remove_rule_pack', { p_trip_id: shared.tripId, p_pack_id: 'classics' }), 'Only the organiser can remove rule packs');
+      await as(users.packer);
+      await expectError(() => rpc('remove_rule_pack', { p_trip_id: shared.tripId, p_pack_id: 'classics' }), 'not in this trip');
+    });
+
+    await test('the internal pack copier cannot be called from the app', async () => {
+      await as(users.packer);
+      const trip = await packTrip([]);
+      await expectError(() => rpc('insert_rule_pack_internal', { p_trip_id: trip.trip_id, p_pack_id: 'classics' }), 'permission denied');
+    });
+
+    console.log('\nAccounts');
+
+    async function historyOf(userId) {
+      let history;
+      await asAdmin(async () => {
+        history = await rows('select player_id from public.account_players where auth_user_id = $1', [userId]);
+      });
+      return history;
+    }
+
+    await test('every trip a sign-in plays is remembered, even after leaving it', async () => {
+      await as(users.holder);
+      const first = await packTrip([]);
+      await rpc('leave_trip');
+      const second = await packTrip([]);
+      const players = (await historyOf(users.holder)).map((r) => r.player_id).sort();
+      assert.deepEqual(players, [first.player_id, second.player_id].sort());
+    });
+
+    await test('joining a trip on another phone is remembered for that sign-in too', async () => {
+      const history = await historyOf(users.jonnoPhone2);
+      assert.ok(history.some((r) => r.player_id === playerId('Jonno')));
+    });
+
+    await test("phones cannot read anyone's trip history directly", async () => {
+      await as(users.holder);
+      await packTrip([]);
+      assert.equal((await rows('select * from public.account_players')).length, 0);
+    });
+
+    await test('deleting the account removes the sign-in, its link and its history, but not the trip', async () => {
+      await as(users.holder);
+      const trip = await packTrip([]);
+      await rpc('delete_my_account');
+      await asAdmin(async () => {
+        assert.equal((await rows('select * from auth.users where id = $1', [users.holder])).length, 0);
+        assert.equal((await rows('select * from public.devices where auth_user_id = $1', [users.holder])).length, 0);
+        assert.equal((await rows('select * from public.account_players where auth_user_id = $1', [users.holder])).length, 0);
+        assert.equal((await rows('select * from public.players where id = $1', [trip.player_id])).length, 1);
+      });
+    });
+
+    console.log('\nCustom rule packs');
+
+    const packRules = (packId) =>
+      rows('select title, points from public.custom_pack_rules where pack_id = $1 order by title', [packId]);
+
+    await test('a phone without an account cannot make a pack', async () => {
+      await asAdmin(() => client.query('update auth.users set is_anonymous = true where id = $1', [users.anonymous]));
+      await as(users.anonymous);
+      await expectError(() => rpc('create_custom_pack', { p_name: 'Mine' }), 'Create an account or sign in');
+    });
+
+    await test('an account makes a pack and fills it from anywhere, skipping names it already has', async () => {
+      await as(users.packer);
+      const packId = await rpc('create_custom_pack', { p_name: '  Stag   classics ' });
+      const added = await rpc('add_custom_pack_rules', {
+        p_pack_id: packId,
+        p_rules: JSON.stringify([
+          { title: 'Drinking from a straw', points: -5 },
+          { title: 'Best  speech', points: 15 },
+          { title: 'drinking from a straw', points: -20 },
+        ]),
+      });
+      assert.equal(added, 2);
+      assert.deepEqual(await packRules(packId), [
+        { title: 'Best speech', points: 15 },
+        { title: 'Drinking from a straw', points: -5 },
+      ]);
+      const [pack] = await rows('select name from public.custom_rule_packs where id = $1', [packId]);
+      assert.equal(pack.name, 'Stag classics');
+    });
+
+    await test('pack rules get the same checks as trip rules, and pack names are unique per account', async () => {
+      await as(users.packer);
+      const packId = await rpc('create_custom_pack', { p_name: 'Checks' });
+      await expectError(() => rpc('add_custom_pack_rules', { p_pack_id: packId, p_rules: JSON.stringify([{ title: 'X', points: 5 }]) }), 'Rule names must be 2 to 60');
+      await expectError(() => rpc('add_custom_pack_rules', { p_pack_id: packId, p_rules: JSON.stringify([{ title: 'Fine name', points: 0 }]) }), 'between -25 and 25');
+      await expectError(() => rpc('create_custom_pack', { p_name: 'CHECKS' }), 'already have a pack called');
+      await rpc('add_custom_pack_rules', { p_pack_id: packId, p_rules: JSON.stringify([{ title: 'Late', points: -5 }, { title: 'Early', points: 5 }]) });
+      const [late] = await rows(`select id from public.custom_pack_rules where pack_id = $1 and title = 'Late'`, [packId]);
+      await expectError(() => rpc('update_custom_pack_rule', { p_rule_id: late.id, p_title: 'early', p_points: -5 }), 'already has a rule called');
+      await rpc('update_custom_pack_rule', { p_rule_id: late.id, p_title: 'Late to dinner', p_points: -10 });
+      await rpc('delete_custom_pack_rule', { p_rule_id: (await rows(`select id from public.custom_pack_rules where title = 'Early' and pack_id = $1`, [packId]))[0].id });
+      assert.deepEqual(await packRules(packId), [{ title: 'Late to dinner', points: -10 }]);
+    });
+
+    await test('nobody else can see, change or use your pack', async () => {
+      await as(users.packer);
+      const packId = await rpc('create_custom_pack', { p_name: 'Private' });
+      await rpc('add_custom_pack_rules', { p_pack_id: packId, p_rules: JSON.stringify([{ title: 'Secret', points: 5 }]) });
+      await as(users.dev);
+      assert.equal((await rows('select * from public.custom_rule_packs where id = $1', [packId])).length, 0);
+      assert.equal((await rows('select * from public.custom_pack_rules where pack_id = $1', [packId])).length, 0);
+      await expectError(() => rpc('rename_custom_pack', { p_pack_id: packId, p_name: 'Taken' }), "isn't yours");
+      await expectError(() => rpc('add_custom_pack_to_trip', { p_trip_id: shared.tripId, p_pack_id: packId }), "isn't yours");
+      await expectError(() => client.query(`insert into public.custom_rule_packs (owner_id, name) values ($1, 'Sneaky')`, [users.dev]), 'permission denied');
+    });
+
+    await test('the organiser copies their pack into a trip and can take it back out; edits to the pack later change nothing', async () => {
+      await as(users.packer);
+      const trip = await packTrip(['classics']);
+      const packId = await rpc('create_custom_pack', { p_name: 'Reusable' });
+      await rpc('add_custom_pack_rules', {
+        p_pack_id: packId,
+        p_rules: JSON.stringify([{ title: 'Drinking from a straw', points: -10 }, { title: 'Best speech', points: 15 }]),
+      });
+      assert.equal(await rpc('add_custom_pack_to_trip', { p_trip_id: trip.trip_id, p_pack_id: packId }), 1);
+      await rpc('rename_custom_pack', { p_pack_id: packId, p_name: 'Renamed' });
+      await rpc('add_custom_pack_rules', { p_pack_id: packId, p_rules: JSON.stringify([{ title: 'Later rule', points: 5 }]) });
+      const fromPack = await rows('select title from public.rules where trip_id = $1 and custom_pack_id = $2 and not archived', [trip.trip_id, packId]);
+      assert.deepEqual(fromPack.map((r) => r.title), ['Best speech']);
+
+      assert.equal(await rpc('remove_custom_pack_from_trip', { p_trip_id: trip.trip_id, p_pack_id: packId }), 1);
+      assert.equal((await rows('select * from public.rules where trip_id = $1 and not archived', [trip.trip_id])).length, 22);
+    });
+
+    await test('only the organiser adds or removes a custom pack', async () => {
+      await as(users.jonno);
+      await asAdmin(() => client.query('update auth.users set is_anonymous = false where id = $1', [users.jonno]));
+      const packId = await rpc('create_custom_pack', { p_name: 'Jonno pack' });
+      await expectError(() => rpc('add_custom_pack_to_trip', { p_trip_id: shared.tripId, p_pack_id: packId }), 'Only the organiser can add rule packs');
+      await expectError(() => rpc('remove_custom_pack_from_trip', { p_trip_id: shared.tripId, p_pack_id: packId }), 'Only the organiser can remove rule packs');
+    });
+
+    await test("deleting a pack keeps the trips' copies of its rules, and deleting the account deletes its packs", async () => {
+      await as(users.leaver);
+      const trip = await packTrip([]);
+      const packId = await rpc('create_custom_pack', { p_name: 'Short lived' });
+      await rpc('add_custom_pack_rules', { p_pack_id: packId, p_rules: JSON.stringify([{ title: 'Kept', points: 5 }]) });
+      await rpc('add_custom_pack_to_trip', { p_trip_id: trip.trip_id, p_pack_id: packId });
+      await rpc('delete_custom_pack', { p_pack_id: packId });
+      const [kept] = await rows(`select custom_pack_id from public.rules where trip_id = $1 and title = 'Kept'`, [trip.trip_id]);
+      assert.equal(kept.custom_pack_id, null);
+
+      const another = await rpc('create_custom_pack', { p_name: 'Goes with the account' });
+      await rpc('delete_my_account');
+      await asAdmin(async () => {
+        assert.equal((await rows('select * from public.custom_rule_packs where id = $1', [another])).length, 0);
+      });
+    });
+
+    await test('the pack helpers cannot be called from the app', async () => {
+      await as(users.packer);
+      await expectError(() => rpc('my_account_id'), 'permission denied');
+      await expectError(() => rpc('checked_pack_name', { p_name: 'x' }), 'permission denied');
     });
 
     console.log('\nVoting');
@@ -278,6 +557,68 @@ async function run() {
       assert.deepEqual([e.points, e.note, e.status], [-5, 'Late to dinner', 'pending']);
       await expectError(() => rpc('create_entry', { p_trip_id: shared.tripId, p_subject_id: playerId('Kev'), p_rule_id: late, p_points: -10 }), 'does not exist');
       await expectError(() => rpc('create_entry', { p_trip_id: shared.tripId, p_subject_id: playerId('Kev') }), 'Pick a rule');
+    });
+
+    const ruleRow = async (id) => (await rows('select title, points, archived from public.rules where id = $1', [id]))[0];
+
+    await test('the organiser edits a pack rule, and entries already logged keep their points', async () => {
+      const karaoke = await ruleId('Karaoke performance, full song');
+      await as(users.kev);
+      const entry = await rpc('create_entry', { p_trip_id: shared.tripId, p_subject_id: playerId('Jonno'), p_rule_id: karaoke });
+      await as(users.dev);
+      await rpc('update_rule', { p_rule_id: karaoke, p_title: '  Karaoke,   whole song ', p_points: 15 });
+      assert.deepEqual(await ruleRow(karaoke), { title: 'Karaoke, whole song', points: 15, archived: false });
+      const [e] = await rows('select points, rule_id from public.entries where id = $1', [entry]);
+      assert.deepEqual([e.points, e.rule_id], [10, karaoke]);
+    });
+
+    await test('whoever added a rule can edit and delete it, and other players cannot', async () => {
+      await as(users.tommo);
+      const mine = await rpc('create_rule', { p_trip_id: shared.tripId, p_title: 'Tommo special', p_points: -3 });
+      await as(users.jonno);
+      await expectError(() => rpc('update_rule', { p_rule_id: mine, p_title: 'Hijacked', p_points: 25 }), 'Only the organiser or the person who added this rule');
+      await expectError(() => rpc('delete_rule', { p_rule_id: mine }), 'Only the organiser or the person who added this rule');
+      await as(users.tommo);
+      await rpc('update_rule', { p_rule_id: mine, p_title: 'TOMMO special', p_points: -4 });
+      assert.deepEqual(await ruleRow(mine), { title: 'TOMMO special', points: -4, archived: false });
+      await rpc('delete_rule', { p_rule_id: mine });
+      assert.equal((await ruleRow(mine)).archived, true);
+    });
+
+    await test('an edit passes the same checks as a new rule', async () => {
+      const karaoke = await ruleId('Karaoke, whole song');
+      await as(users.dev);
+      const edit = (title, points) => rpc('update_rule', { p_rule_id: karaoke, p_title: title, p_points: points });
+      await expectError(() => edit('drinking FROM a straw', 10), 'already a rule');
+      await expectError(() => edit('Karaoke, whole song', 30), 'between -25 and 25');
+      await expectError(() => edit('Karaoke, whole song', 0), 'between -25 and 25');
+      await expectError(() => edit('K', 10), '2 to 60 characters');
+    });
+
+    await test('a deleted rule leaves the rulebook, its entries stay, and its name is free again', async () => {
+      const bestDressed = await ruleId('Best dressed of the night');
+      await as(users.kev);
+      const entry = await rpc('create_entry', { p_trip_id: shared.tripId, p_subject_id: playerId('Sully'), p_rule_id: bestDressed });
+      await as(users.dev);
+      await rpc('delete_rule', { p_rule_id: bestDressed });
+
+      const [e] = await rows('select points, rule_id from public.entries where id = $1', [entry]);
+      assert.deepEqual([e.points, e.rule_id], [10, bestDressed]);
+      await expectError(() => rpc('create_entry', { p_trip_id: shared.tripId, p_subject_id: playerId('Sully'), p_rule_id: bestDressed }), "That rule doesn't exist");
+      await expectError(() => rpc('update_rule', { p_rule_id: bestDressed, p_title: 'Back again', p_points: 5 }), "That rule doesn't exist");
+      await expectError(() => rpc('delete_rule', { p_rule_id: bestDressed }), "That rule doesn't exist");
+      await as(users.tommo);
+      assert.ok(await rpc('create_rule', { p_trip_id: shared.tripId, p_title: 'Best dressed of the night', p_points: 5 }));
+    });
+
+    await test('an outsider cannot edit or delete rules, and the shared checks are not callable', async () => {
+      const straw = await ruleId('Drinking from a straw');
+      await as(users.outsider);
+      await expectError(() => rpc('update_rule', { p_rule_id: straw, p_title: 'Sneaky', p_points: 25 }), "That rule doesn't exist");
+      await expectError(() => rpc('delete_rule', { p_rule_id: straw }), "That rule doesn't exist");
+      await as(users.dev);
+      await expectError(() => rpc('rule_i_can_manage', { p_rule_id: straw }), 'permission denied');
+      await expectError(() => rpc('checked_rule_title', { p_trip_id: shared.tripId, p_title: 'x', p_points: 1 }), 'permission denied');
     });
 
     console.log('\nComments and evidence');
@@ -458,6 +799,71 @@ async function run() {
       await as(users.sully);
       assert.equal(await removeFile(current, 'avatars'), 0, 'still in use');
       assert.equal(await removeFile(old, 'avatars'), 1);
+    });
+
+    console.log('\nRenaming yourself');
+
+    const renameTrip = {};
+    const renameMe = (name, tripId = renameTrip.id) => rpc('rename_me', { p_trip_id: tripId, p_name: name });
+    const renameTripNames = async () =>
+      (await rows('select name from public.players where trip_id = $1 order by position', [renameTrip.id])).map((p) => p.name);
+
+    await test('a player renames themselves, with spaces tidied, and the trip shows the new name everywhere', async () => {
+      await as(users.renamer);
+      const trip = await rpc('create_trip', { p_name: 'Renames', p_player_names: ['Ana', 'Ben', 'Cat'], p_my_index: 0, p_pin: '1212', p_vote_threshold: 1 });
+      renameTrip.id = trip.trip_id;
+      renameTrip.ben = (await rows('select id from public.players where trip_id = $1 and name = $2', [trip.trip_id, 'Ben']))[0].id;
+      await as(users.renamerFriend);
+      assert.equal((await rpc('join_trip', { p_code: trip.join_code, p_player_id: renameTrip.ben, p_pin: '3434' })).ok, true);
+
+      await as(users.renamer);
+      assert.equal(await renameMe('  Ana   Banana '), 'Ana Banana');
+      assert.equal((await rpc('get_my_session')).player_name, 'Ana Banana');
+      assert.deepEqual(await renameTripNames(), ['Ana Banana', 'Ben', 'Cat']);
+      const board = await rows('select name from public.leaderboard where trip_id = $1 and player_id = $2', [renameTrip.id, trip.player_id]);
+      assert.deepEqual(board, [{ name: 'Ana Banana' }]);
+    });
+
+    await test('a player can change just the case of their own name', async () => {
+      await as(users.renamer);
+      assert.equal(await renameMe('ana banana'), 'ana banana');
+    });
+
+    await test('empty, too long and taken names are refused', async () => {
+      await as(users.renamer);
+      await expectError(() => renameMe('   '), 'Names must be 1 to 30 characters');
+      await expectError(() => renameMe(null), 'Names must be 1 to 30 characters');
+      await expectError(() => renameMe('x'.repeat(31)), 'Names must be 1 to 30 characters');
+      await expectError(() => renameMe(' BEN '), 'Someone in this trip is already called "BEN"');
+      assert.equal(await renameMe('x'.repeat(30)), 'x'.repeat(30));
+    });
+
+    await test('a name taken in another trip is free in this one', async () => {
+      await as(users.renamerFriend);
+      assert.equal(await renameMe('Dev'), 'Dev');
+      assert.equal((await rows('select name from public.players where id = $1', [renameTrip.ben]))[0].name, 'Dev');
+    });
+
+    await test("nobody renames someone else, or anyone in a trip they're not in", async () => {
+      await as(users.renamerFriend);
+      const before = await renameTripNames();
+      await expectError(
+        () => client.query('update public.players set name = $1 where id = $2', ['Hacked', renameTrip.ben]),
+        'permission denied',
+      );
+      await as(users.outsider);
+      await expectError(() => renameMe('Hacked'), 'not in this trip');
+      await as(users.renamer);
+      await expectError(() => renameMe('Hacked', shared.tripId), 'not in this trip');
+      await expectError(() => rpc('checked_player_name', { p_trip_id: renameTrip.id, p_name: 'Probe' }), 'permission denied');
+      assert.deepEqual(await renameTripNames(), before);
+    });
+
+    await test('renames reach other phones, because changes to players are published to realtime', async () => {
+      const published = await rows(
+        "select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'players'",
+      );
+      assert.equal(published.length, 1);
     });
 
     console.log('\nIsolation');

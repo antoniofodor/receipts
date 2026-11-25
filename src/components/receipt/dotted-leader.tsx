@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
 
-import { Colors } from '@/constants/theme';
+import { Paper } from '@/constants/theme';
 
 const DOT = 2;
 
@@ -15,7 +15,7 @@ export function DottedLeader() {
           y1={DOT / 2}
           x2="100%"
           y2={DOT / 2}
-          stroke={Colors.line}
+          stroke={Paper.rule}
           strokeWidth={DOT}
           strokeLinecap="round"
           strokeDasharray={`0 ${DOT * 2.5}`}

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
-import { maxVoteThreshold, VoteThresholdCard } from '@/components/create-trip/vote-threshold-card';
+import { maxVoteThreshold, VoteThresholdField } from '@/components/create-trip/vote-threshold-field';
 
 describe('maxVoteThreshold', () => {
   it('excludes the logger and the subject from voting', () => {
@@ -14,10 +14,10 @@ describe('maxVoteThreshold', () => {
   });
 });
 
-describe('VoteThresholdCard', () => {
+describe('VoteThresholdField', () => {
   it('stops increasing at the maximum for the player count', async () => {
     const onChange = jest.fn();
-    await render(<VoteThresholdCard value={3} playerCount={5} onChange={onChange} />);
+    await render(<VoteThresholdField value={3} playerCount={5} onChange={onChange} />);
 
     await fireEvent.press(screen.getByLabelText('Increase votes needed'));
 
@@ -26,7 +26,7 @@ describe('VoteThresholdCard', () => {
 
   it('stops decreasing at 1', async () => {
     const onChange = jest.fn();
-    await render(<VoteThresholdCard value={1} playerCount={5} onChange={onChange} />);
+    await render(<VoteThresholdField value={1} playerCount={5} onChange={onChange} />);
 
     await fireEvent.press(screen.getByLabelText('Decrease votes needed'));
 
@@ -35,7 +35,7 @@ describe('VoteThresholdCard', () => {
 
   it('steps by one within range', async () => {
     const onChange = jest.fn();
-    await render(<VoteThresholdCard value={2} playerCount={6} onChange={onChange} />);
+    await render(<VoteThresholdField value={2} playerCount={6} onChange={onChange} />);
 
     await fireEvent.press(screen.getByLabelText('Increase votes needed'));
 

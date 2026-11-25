@@ -6,7 +6,8 @@ import { BackLink } from '@/components/back-link';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { PIN_LENGTH, PinField } from '@/components/text-fields';
-import { ErrorText, Label, MutedText, Title } from '@/components/typography';
+import { SignTitle } from '@/components/ground/sign-title';
+import { ErrorText, Label, MutedText } from '@/components/typography';
 import { sharedStyles } from '@/constants/styles';
 import { Spacing } from '@/constants/theme';
 
@@ -29,9 +30,9 @@ export function PinStep({ tripName, player, pin, onChangePin, onJoin, onBack, bu
       <BackLink onPress={onBack} />
       <View style={[sharedStyles.row, { gap: Spacing.md }]}>
         <Avatar name={player.name} color={player.color} photoPath={player.photo_path} size={48} />
-        <Title subtitle={tripName}>{player.name}</Title>
+        <SignTitle eyebrow={tripName}>{player.name}</SignTitle>
       </View>
-      <Card>
+      <Card seed={player.id}>
         <Label>{isFirstJoin ? 'Choose a 4-digit PIN' : 'Enter your PIN'}</Label>
         <PinField
           value={pin}

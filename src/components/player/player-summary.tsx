@@ -2,33 +2,75 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import type { LeaderboardRow } from '@/api/leaderboard';
 import { Avatar } from '@/components/avatar';
-import { MutedText } from '@/components/typography';
-import { sharedStyles } from '@/constants/styles';
-import { Spacing, Type } from '@/constants/theme';
-import { formatPoints, pointsColor } from '@/utils/format';
+import { SignTitle } from '@/components/ground/sign-title';
+import { PumpDisplay } from '@/components/receipt/pump-display';
+import { Fonts, Spacing, Wear, type GroundPalette } from '@/constants/theme';
+import { useCountUp } from '@/hooks/use-count-up';
+import { useThemedStyles } from '@/light-mode/use-themed-styles';
+
+const PHOTO_SIZE = 64;
 
 export function PlayerSummary({ row, isMe }: { row: LeaderboardRow; isMe: boolean }) {
-  const standing = row.pending_count > 0 ? `#${row.rank} · ${row.pending_count} pending` : `#${row.rank}`;
+  const styles = useThemedStyles(makeStyles);
+  const total = useCountUp(row.points);
+  const details = [
+    row.is_groom && '★ Groom',
+    isMe && 'You',
+    `#${row.rank}`,
+    row.pending_count > 0 && `${row.pending_count} pending`,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
   return (
-    <View style={[sharedStyles.row, styles.summary]}>
-      <Avatar name={row.name} color={row.color} photoPath={row.photo_path} size={56} />
-      <View style={styles.nameColumn}>
-        <Text style={styles.name} accessibilityRole="header">
-          {row.name}
-        </Text>
-        {row.is_groom || isMe ? (
-          <MutedText>{[row.is_groom && '★ Groom', isMe && 'You'].filter(Boolean).join(' · ')}</MutedText>
-        ) : null}
-        <MutedText>{standing}</MutedText>
+    <View style={styles.stack}>
+      <View style={styles.header}>
+        <View style={styles.instantPhoto}>
+          <Avatar name={row.name} color={row.color} photoPath={row.photo_path} size={PHOTO_SIZE} square />
+          <View
+            pointerEvents="none"
+            accessible={false}
+            importantForAccessibility="no-hide-descendants"
+            style={styles.tape}
+          />
+        </View>
+        <View style={styles.nameColumn}>
+          <SignTitle tileHeight={32}>{row.name}</SignTitle>
+          <Text style={styles.details}>{details}</Text>
+        </View>
       </View>
-      <Text style={[styles.points, { color: pointsColor(row.points) }]}>{formatPoints(row.points)}</Text>
+      <PumpDisplay cells={[{ label: 'Total', unit: 'pts', value: total }]} />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  summary: { gap: Spacing.md },
-  nameColumn: { flex: 1, gap: 2 },
-  name: Type.display,
-  points: { ...Type.points, fontSize: 30 },
-});
+const makeStyles = (ground: GroundPalette) =>
+  StyleSheet.create({
+    stack: { gap: Spacing.lg },
+    header: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg },
+    instantPhoto: {
+      padding: 6,
+      paddingBottom: 18,
+      backgroundColor: Wear.print,
+      boxShadow: Wear.printShadow,
+      transform: [{ rotate: '-3deg' }],
+    },
+    tape: {
+      position: 'absolute',
+      top: -7,
+      alignSelf: 'center',
+      width: 44,
+      height: 15,
+      backgroundColor: Wear.tape,
+      boxShadow: Wear.tapeShadow,
+      transform: [{ rotate: '4deg' }],
+    },
+    nameColumn: { flex: 1, gap: Spacing.sm },
+    details: {
+      fontFamily: Fonts.semiBold,
+      fontSize: 11,
+      letterSpacing: 1.2,
+      textTransform: 'uppercase',
+      color: ground.textMuted,
+    },
+  });

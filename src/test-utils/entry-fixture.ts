@@ -1,11 +1,11 @@
 import type { Entry, Vote } from '@/api/entries';
-import { Colors } from '@/constants/theme';
+import { Paper } from '@/constants/theme';
 
 export const players = {
-  dev: { id: 'dev', name: 'Dev', color: Colors.ink, photo_path: null },
-  jonno: { id: 'jonno', name: 'Jonno', color: Colors.ink, photo_path: null },
-  sully: { id: 'sully', name: 'Sully', color: Colors.ink, photo_path: null },
-  tommo: { id: 'tommo', name: 'Tommo', color: Colors.ink, photo_path: null },
+  dev: { id: 'dev', name: 'Dev', color: Paper.ink, photo_path: null },
+  jonno: { id: 'jonno', name: 'Jonno', color: Paper.ink, photo_path: null },
+  sully: { id: 'sully', name: 'Sully', color: Paper.ink, photo_path: null },
+  tommo: { id: 'tommo', name: 'Tommo', color: Paper.ink, photo_path: null },
 };
 
 export const vote = (voter: keyof typeof players, confirm: boolean): Vote => ({

@@ -58,3 +58,12 @@ export const liveQueries = allTripQueries.filter((query) => query.refreshWhenCha
 
 // Every list holding entries, so a change to one entry reaches each cached copy of it.
 export const entryListQueries = [tripQueries.feed, tripQueries.awaitingMyVote, tripQueries.playerEntries];
+
+// Every list showing players' names and photos: cards, the board, comments and the player list.
+export const queriesShowingPlayers = [
+  tripQueries.players,
+  tripQueries.leaderboard,
+  tripQueries.entry,
+  tripQueries.comments,
+  ...entryListQueries,
+];

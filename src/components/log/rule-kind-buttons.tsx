@@ -1,12 +1,12 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { haptics } from '@/components/haptics';
-import { Colors, Radius, Spacing, Type } from '@/constants/theme';
+import { Paper, Radius, Spacing, Type } from '@/constants/theme';
 import type { RuleKind } from '@/utils/points';
 
 const KINDS: { kind: RuleKind; label: string; color: string }[] = [
-  { kind: 'penalty', label: 'Penalty', color: Colors.minus },
-  { kind: 'bonus', label: 'Bonus', color: Colors.plus },
+  { kind: 'penalty', label: 'Penalty', color: Paper.red },
+  { kind: 'bonus', label: 'Bonus', color: Paper.green },
 ];
 
 type RuleKindButtonsProps = {
@@ -14,6 +14,7 @@ type RuleKindButtonsProps = {
   onChange: (kind: RuleKind) => void;
 };
 
+// Outlined in their colour until picked, then filled with it.
 export function RuleKindButtons({ value, onChange }: RuleKindButtonsProps) {
   return (
     <View style={styles.row} accessibilityRole="radiogroup">
@@ -35,7 +36,7 @@ export function RuleKindButtons({ value, onChange }: RuleKindButtonsProps) {
               selected && { backgroundColor: color },
               pressed && styles.pressed,
             ]}>
-            <Text style={[styles.label, { color: selected ? Colors.onAccent : color }]}>{label}</Text>
+            <Text style={[styles.label, { color: selected ? Paper.paper : color }]}>{label}</Text>
           </Pressable>
         );
       })}
@@ -47,13 +48,12 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: Spacing.sm },
   button: {
     flex: 1,
-    minHeight: 50,
-    borderWidth: 1.5,
-    borderRadius: Radius.md,
+    minHeight: 48,
+    borderWidth: 2,
+    borderRadius: Radius.key,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.card,
   },
   pressed: { opacity: 0.8 },
-  label: { ...Type.button, fontSize: 13 },
+  label: { ...Type.key, fontSize: 18 },
 });

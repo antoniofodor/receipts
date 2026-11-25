@@ -1,10 +1,10 @@
-import { Share, StyleSheet, Text } from 'react-native';
+import { Share } from 'react-native';
 
 import type { Membership } from '@/api/trips';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
+import { LedWindow } from '@/components/receipt/led-window';
 import { Label } from '@/components/typography';
-import { Colors, Fonts } from '@/constants/theme';
 
 export function InviteCard({ membership }: { membership: Membership }) {
   function shareCode() {
@@ -14,22 +14,13 @@ export function InviteCard({ membership }: { membership: Membership }) {
   }
 
   return (
-    <Card>
+    <Card seed="invite">
       <Label>Invite the group</Label>
-      <Text style={styles.code} selectable accessibilityLabel={`Trip code ${membership.join_code.split('').join(' ')}`}>
-        {membership.join_code}
-      </Text>
+      <LedWindow
+        lit={membership.join_code}
+        accessibilityLabel={`Trip code ${membership.join_code.split('').join(' ')}`}
+      />
       <Button title="Share code" variant="secondary" onPress={shareCode} />
     </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  code: {
-    fontFamily: Fonts.heavy,
-    fontSize: 40,
-    letterSpacing: 10,
-    color: Colors.ink,
-    textAlign: 'center',
-  },
-});

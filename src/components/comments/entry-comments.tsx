@@ -3,9 +3,11 @@ import { View } from 'react-native';
 
 import type { Comment } from '@/api/comments';
 import { tripQueries } from '@/api/trip-queries';
+import { Card } from '@/components/card';
 import { CommentComposer } from '@/components/comments/comment-composer';
 import { CommentThreadList } from '@/components/comments/comment-thread-list';
-import { ErrorText, MutedText, SectionLabel } from '@/components/typography';
+import { TapeLabel } from '@/components/tape-label';
+import { ErrorText, MutedText } from '@/components/typography';
 import { sharedStyles } from '@/constants/styles';
 import { useAddComment } from '@/hooks/use-add-comment';
 import { useTripQuery } from '@/hooks/use-trip-query';
@@ -27,29 +29,31 @@ export function EntryComments({ entryId }: { entryId: string }) {
 
   return (
     <View style={sharedStyles.stack}>
-      <SectionLabel count={count > 0 ? count : undefined}>Comments</SectionLabel>
+      <TapeLabel count={count > 0 ? count : undefined}>Comments</TapeLabel>
       <ErrorText>{comments.error}</ErrorText>
-      {comments.data && count === 0 ? <MutedText>No comments yet. Start the argument.</MutedText> : null}
-      {comments.data ? (
-        <CommentThreadList
-          comments={comments.data}
-          onReply={setReplyingTo}
-          openThreadId={replyingTo ? threadIdOf(replyingTo) : null}
-          replyBox={
-            replyingTo ? (
-              <CommentComposer
-                key={replyingTo.id}
-                placeholder={`Reply to ${replyingTo.author.name}`}
-                inputLabel="Your reply"
-                onSend={sendReply}
-                onCancel={() => setReplyingTo(null)}
-                autoFocus
-              />
-            ) : null
-          }
-        />
-      ) : null}
-      <CommentComposer placeholder="Add a comment" inputLabel="Comment" onSend={(body) => addComment(body, null)} />
+      <Card seed={`comments-${entryId}`}>
+        {comments.data && count === 0 ? <MutedText>No comments yet. Start the argument.</MutedText> : null}
+        {comments.data ? (
+          <CommentThreadList
+            comments={comments.data}
+            onReply={setReplyingTo}
+            openThreadId={replyingTo ? threadIdOf(replyingTo) : null}
+            replyBox={
+              replyingTo ? (
+                <CommentComposer
+                  key={replyingTo.id}
+                  placeholder={`Reply to ${replyingTo.author.name}`}
+                  inputLabel="Your reply"
+                  onSend={sendReply}
+                  onCancel={() => setReplyingTo(null)}
+                  autoFocus
+                />
+              ) : null
+            }
+          />
+        ) : null}
+        <CommentComposer placeholder="Add a comment" inputLabel="Comment" onSend={(body) => addComment(body, null)} />
+      </Card>
     </View>
   );
 }

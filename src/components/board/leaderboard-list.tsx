@@ -6,7 +6,7 @@ import { Avatar } from '@/components/avatar';
 import { CountUpPoints } from '@/components/count-up-points';
 import { PressableScale } from '@/components/pressable-scale';
 import { DottedLeader } from '@/components/receipt/dotted-leader';
-import { Colors, Fonts, Radius, Spacing, Type } from '@/constants/theme';
+import { Fonts, Paper, Radius, Spacing, Type } from '@/constants/theme';
 import { pointsColor } from '@/utils/format';
 
 type LeaderboardListProps = {
@@ -38,7 +38,7 @@ function LeaderboardLine({ row, isMe, onPress }: { row: LeaderboardRow; isMe: bo
       <Text style={[styles.rank, row.rank === 1 && styles.leader]}>{String(row.rank).padStart(2, '0')}</Text>
       <Avatar name={row.name} color={row.color} photoPath={row.photo_path} size={28} />
       <View style={styles.nameColumn}>
-        <Text style={Type.name} numberOfLines={1}>
+        <Text style={styles.name} numberOfLines={1}>
           {row.name}
           {row.is_groom ? ' ★' : ''}
           {isMe ? ' (you)' : ''}
@@ -61,17 +61,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     borderRadius: Radius.sm,
   },
-  myRow: { backgroundColor: Colors.soft },
-  rank: { width: 20, fontFamily: Fonts.bold, fontSize: 12, color: Colors.muted },
-  leader: { color: Colors.red },
+  myRow: { backgroundColor: Paper.highlight },
+  rank: { width: 20, fontFamily: Fonts.bold, fontSize: 12, color: Paper.muted },
+  leader: { color: Paper.red },
   nameColumn: { flexShrink: 1, gap: 1 },
+  name: { ...Type.name, fontSize: 19, lineHeight: 21 },
   pending: {
     fontFamily: Fonts.regular,
     fontSize: 10.5,
     letterSpacing: 0.5,
     textTransform: 'uppercase',
-    color: Colors.muted,
+    color: Paper.muted,
   },
   points: { fontSize: 17 },
-  chevron: { fontFamily: Fonts.regular, fontSize: 18, color: Colors.line },
+  chevron: { fontFamily: Fonts.regular, fontSize: 18, color: Paper.muted },
 });

@@ -2,11 +2,12 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
-import { Chip } from '@/components/chip';
+import { PressableScale } from '@/components/pressable-scale';
+import { DashedRule } from '@/components/receipt/dashed-rule';
+import { DottedUnderline } from '@/components/receipt/dotted-underline';
 import { TextField } from '@/components/text-fields';
-import { Label } from '@/components/typography';
-import { sharedStyles } from '@/constants/styles';
-import { Colors, Fonts, Spacing } from '@/constants/theme';
+import { PLAYER_NAME_MAX_LENGTH } from '@/constants/game-rules';
+import { Fonts, Paper, Spacing } from '@/constants/theme';
 
 export const ORGANISER_ROW_ID = 'organiser';
 
@@ -21,6 +22,7 @@ type PlayerListEditorProps = {
   onToggleGroom: (rowId: string) => void;
 };
 
+// Who's in, as one receipt: a numbered line per player, written on a dotted blank.
 export function PlayerListEditor({
   rows,
   groomRowId,
@@ -30,49 +32,82 @@ export function PlayerListEditor({
   onToggleGroom,
 }: PlayerListEditorProps) {
   return (
-    <View style={sharedStyles.stack}>
-      <Label>Players</Label>
+    <Card seed="new-trip-players">
       {rows.map((row, position) => {
         const isOrganiser = row.id === ORGANISER_ROW_ID;
         const fieldLabel = isOrganiser ? 'Your name' : `Player ${position + 1}`;
+        const isGroom = groomRowId === row.id;
         return (
-          <Card key={row.id} style={styles.card}>
-            <View style={sharedStyles.row}>
-              <TextField
-                value={row.name}
-                onChangeText={(name) => onRename(row.id, name)}
-                placeholder={fieldLabel}
-                maxLength={30}
-                style={styles.nameField}
-                accessibilityLabel={fieldLabel}
-              />
-              {isOrganiser ? null : (
+          <View key={row.id} style={styles.line}>
+            {position > 0 ? <DashedRule /> : null}
+            <View style={styles.row}>
+              <Text style={styles.number}>{String(position + 1).padStart(2, '0')}</Text>
+              <View style={styles.nameColumn}>
+                <TextField
+                  value={row.name}
+                  onChangeText={(name) => onRename(row.id, name)}
+                  placeholder={fieldLabel}
+                  maxLength={PLAYER_NAME_MAX_LENGTH}
+                  style={styles.nameField}
+                  accessibilityLabel={fieldLabel}
+                />
+                <DottedUnderline />
+                {isOrganiser ? <Text style={styles.youTag}>Organiser · You</Text> : null}
+              </View>
+              <PressableScale
+                accessibilityRole="checkbox"
+                accessibilityLabel="Groom"
+                accessibilityState={{ checked: isGroom }}
+                onPress={() => onToggleGroom(row.id)}
+                feedback="tick"
+                style={styles.star}>
+                <Text style={[styles.starText, isGroom && styles.starOn]}>{isGroom ? '★' : '☆'}</Text>
+              </PressableScale>
+              {isOrganiser ? (
+                <View style={styles.removeSlot} />
+              ) : (
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={`Remove ${row.name || fieldLabel}`}
                   onPress={() => onRemove(row.id)}
-                  hitSlop={8}
-                  style={styles.remove}>
+                  hitSlop={4}
+                  style={styles.removeSlot}>
                   <Text style={styles.removeText}>{'×'}</Text>
                 </Pressable>
               )}
             </View>
-            <View style={sharedStyles.row}>
-              {isOrganiser ? <Text style={styles.youTag}>YOU · ORGANISER</Text> : null}
-              <Chip label={'★ Groom'} selected={groomRowId === row.id} onPress={() => onToggleGroom(row.id)} />
-            </View>
-          </Card>
+          </View>
         );
       })}
       <Button title="Add player" variant="secondary" onPress={onAdd} />
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { padding: Spacing.md, gap: Spacing.sm },
-  nameField: { flex: 1 },
-  remove: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  removeText: { fontFamily: Fonts.regular, fontSize: 24, color: Colors.muted },
-  youTag: { fontFamily: Fonts.bold, fontSize: 10.5, color: Colors.red, letterSpacing: 1.4, flex: 1 },
+  line: { gap: Spacing.sm },
+  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  number: { width: 22, fontFamily: Fonts.heavy, fontSize: 12, color: Paper.muted },
+  nameColumn: { flex: 1, gap: 2 },
+  nameField: {
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    paddingHorizontal: 0,
+    paddingVertical: Spacing.xs,
+    fontFamily: Fonts.semiBold,
+    fontSize: 15,
+  },
+  youTag: {
+    fontFamily: Fonts.heavy,
+    fontSize: 9.5,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    color: Paper.red,
+    paddingTop: 2,
+  },
+  star: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  starText: { fontFamily: Fonts.regular, fontSize: 24, color: Paper.muted },
+  starOn: { color: Paper.red },
+  removeSlot: { width: 28, height: 44, alignItems: 'center', justifyContent: 'center' },
+  removeText: { fontFamily: Fonts.regular, fontSize: 24, color: Paper.muted },
 });

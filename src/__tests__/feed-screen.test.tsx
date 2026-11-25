@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 
 import { castVote, getEntriesAwaitingMyVote, getRecentEntries } from '@/api/entries';
+import { getLeaderboard } from '@/api/leaderboard';
 import FeedScreen from '@/app/(app)/index';
 import { makeEntry, players, vote } from '@/test-utils/entry-fixture';
 import { renderWithQueryClient } from '@/test-utils/render-with-query-client';
@@ -18,6 +19,7 @@ jest.mock('@/api/entries', () => ({
   getRecentEntries: jest.fn(),
   getEntriesAwaitingMyVote: jest.fn(),
 }));
+jest.mock('@/api/leaderboard', () => ({ getLeaderboard: jest.fn().mockResolvedValue([]) }));
 jest.mock('@/session/session-provider', () => ({
   useMembership: () => ({
     trip_id: 'trip-1',
@@ -46,10 +48,34 @@ describe('Feed screen', () => {
 
     await renderWithQueryClient(<FeedScreen />);
 
-    expect(await screen.findByText('Needs your vote (1)')).toBeTruthy();
+    expect(await screen.findByRole('header', { name: 'Needs your vote, 1' })).toBeTruthy();
     expect(screen.getByText('Recent')).toBeTruthy();
     expect(screen.getAllByText('Drinking from a straw')).toHaveLength(1);
     expect(screen.getByText('Asleep before midnight')).toBeTruthy();
+  });
+
+  it('puts my total, what waits on my vote and my rank on the pump', async () => {
+    jest.mocked(getRecentEntries).mockResolvedValue([needsVote, alreadyDecided]);
+    jest.mocked(getEntriesAwaitingMyVote).mockResolvedValue([needsVote]);
+    jest.mocked(getLeaderboard).mockResolvedValueOnce([
+      {
+        trip_id: 'trip-1',
+        player_id: 'sully',
+        name: 'Sully',
+        color: players.sully.color,
+        is_groom: false,
+        points: 35,
+        pending_count: 0,
+        rank: 3,
+        photo_path: null,
+      },
+    ]);
+
+    await renderWithQueryClient(<FeedScreen />);
+
+    expect(await screen.findByLabelText('Your total: 35')).toBeTruthy();
+    expect(screen.getByLabelText('Pending: 1')).toBeTruthy();
+    expect(screen.getByLabelText('Rank: 3')).toBeTruthy();
   });
 
   it('shows the invite card before anything is logged', async () => {

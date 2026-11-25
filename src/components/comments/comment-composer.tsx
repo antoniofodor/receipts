@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { COMMENT_MAX_LENGTH } from '@/api/comments';
 import { TextField } from '@/components/text-fields';
 import { ErrorText } from '@/components/typography';
-import { Colors, Fonts, Spacing } from '@/constants/theme';
+import { Fonts, Paper, Spacing } from '@/constants/theme';
 import { useAsyncAction } from '@/hooks/use-async-action';
 
 type CommentComposerProps = {
@@ -73,6 +73,6 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     letterSpacing: 1.4,
     textTransform: 'uppercase',
-    color: Colors.muted,
+    color: Paper.muted,
   },
 });

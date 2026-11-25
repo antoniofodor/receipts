@@ -7,7 +7,8 @@ import { BackLink } from '@/components/back-link';
 import { EntryCard } from '@/components/feed/entry-card';
 import { PlayerSummary } from '@/components/player/player-summary';
 import { Screen } from '@/components/screen';
-import { ErrorText, MutedText, SectionLabel } from '@/components/typography';
+import { TapeLabel } from '@/components/tape-label';
+import { ErrorText, MutedText } from '@/components/typography';
 import { useKeptWhileFocused } from '@/hooks/use-kept-while-focused';
 import { useTripQuery } from '@/hooks/use-trip-query';
 import { useMembership } from '@/session/session-provider';
@@ -45,14 +46,14 @@ export default function PlayerScreen() {
 
       {pending.items.length > 0 ? (
         <>
-          <SectionLabel count={pending.items.length}>Pending</SectionLabel>
+          <TapeLabel count={pending.items.length}>Pending</TapeLabel>
           {pending.items.map(renderEntry)}
         </>
       ) : null}
 
       {confirmed.length > 0 ? (
         <>
-          <SectionLabel count={confirmed.length}>Approved</SectionLabel>
+          <TapeLabel count={confirmed.length}>Approved</TapeLabel>
           {confirmed.map(renderEntry)}
         </>
       ) : null}

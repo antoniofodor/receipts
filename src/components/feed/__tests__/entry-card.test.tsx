@@ -36,14 +36,14 @@ describe('EntryCard', () => {
     expect(screen.getByRole('button', { name: 'Comment' })).toBeTruthy();
   });
 
-  it('keeps list cards compact: my vote is an icon, and the voting details stay on the entry screen', async () => {
+  it('keeps list cards compact: my vote is an icon and the tally a line, with who voted left to the entry screen', async () => {
     const entry = makeEntry({ votes: [vote('sully', true), vote('tommo', true)] });
     await renderWithQueryClient(<EntryCard entry={entry} myPlayerId="sully" votesNeeded={3} />);
 
     expect(screen.getByLabelText('You approved this')).toBeTruthy();
     expect(screen.getByLabelText('2 of 3 approvals')).toBeTruthy();
+    expect(screen.getByText('2 of 3 approvals')).toBeTruthy();
     expect(screen.queryByText(/Approved by/)).toBeNull();
-    expect(screen.queryByText(/of 3 approvals/)).toBeNull();
   });
 
   it('shows the full voting story on the entry screen', async () => {
@@ -84,11 +84,11 @@ describe('EntryCard', () => {
       <EntryCard entry={makeEntry({ status })} myPlayerId="sully" votesNeeded={3} />
     );
     const { rerender } = await renderWithQueryClient(card('pending'));
-    expect(screen.queryByText('APPROVED')).toBeNull();
+    expect(screen.queryByText('APPROVED', { includeHiddenElements: true })).toBeNull();
 
     await rerender(card('confirmed'));
 
-    expect(screen.getByText('APPROVED')).toBeTruthy();
+    expect(screen.getByText('APPROVED', { includeHiddenElements: true })).toBeTruthy();
   });
 
   it('prints no stamp on an entry that was already approved', async () => {
@@ -97,7 +97,7 @@ describe('EntryCard', () => {
     );
 
     expect(screen.getByText('Approved')).toBeTruthy();
-    expect(screen.queryByText('APPROVED')).toBeNull();
+    expect(screen.queryByText('APPROVED', { includeHiddenElements: true })).toBeNull();
   });
 
   it('strikes through the points of a declined entry', async () => {

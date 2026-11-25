@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Player } from '@/api/players';
 import { Avatar } from '@/components/avatar';
 import { haptics } from '@/components/haptics';
-import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
+import { Fonts, Paper, Radius, Spacing } from '@/constants/theme';
 
 type PlayerPickerProps = {
   players: Player[];
@@ -43,22 +43,22 @@ export function PlayerPicker({ players, myPlayerId, selectedId, onSelect }: Play
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   option: {
-    width: 84,
+    width: '31%',
     alignItems: 'center',
     gap: Spacing.xs,
     paddingVertical: Spacing.sm,
-    borderRadius: Radius.md,
-    borderWidth: 1.5,
+    paddingHorizontal: Spacing.xs,
+    borderRadius: Radius.sm,
+    borderWidth: 2,
     borderColor: 'transparent',
   },
-  selected: { borderColor: Colors.ink, backgroundColor: Colors.card },
+  selected: { borderColor: Paper.ink, backgroundColor: Paper.highlight },
   name: {
     fontFamily: Fonts.bold,
     fontSize: 10,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
-    color: Colors.muted,
-    maxWidth: 76,
+    color: Paper.muted,
   },
-  selectedName: { color: Colors.ink },
+  selectedName: { color: Paper.ink },
 });

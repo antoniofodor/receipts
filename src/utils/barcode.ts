@@ -1,22 +1,12 @@
+import { hashOf, seededRandom } from '@/utils/seed';
+
 const BAR_COUNT = 56;
 
 export type BarcodeBar = { width: number; gap: number };
 
-function hashOf(text: string) {
-  let hash = 2166136261;
-  for (const char of text) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
-  return hash >>> 0;
-}
-
-// A small deterministic generator, so the same seed always gives the same bars.
+// The same seed always gives the same bars.
 export function barcodeBars(seed: string): BarcodeBar[] {
-  let state = hashOf(seed) || 1;
-  const next = () => {
-    state ^= state << 13;
-    state ^= state >>> 17;
-    state ^= state << 5;
-    return (state >>> 0) / 4294967296;
-  };
+  const next = seededRandom(seed);
   return Array.from({ length: BAR_COUNT }, () => {
     const roll = next();
     return { width: roll < 0.3 ? 3 : roll < 0.6 ? 2 : 1, gap: next() < 0.5 ? 1 : 2 };

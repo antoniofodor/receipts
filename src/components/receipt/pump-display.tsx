@@ -1,63 +1,84 @@
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
-import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
+import { makePumpStyles } from '@/components/receipt/pump-styles';
+import { Fonts, Spacing, type GroundPalette } from '@/constants/theme';
+import { useThemedStyles } from '@/light-mode/use-themed-styles';
+import { pumpDigits } from '@/utils/pump-digits';
 
 const ROLL_DISTANCE = 18;
 const ROLL_UP = FadeInUp.duration(260).withInitialValues({ transform: [{ translateY: ROLL_DISTANCE }] });
 const ROLL_DOWN = FadeInDown.duration(260).withInitialValues({ transform: [{ translateY: -ROLL_DISTANCE }] });
 
-type PumpDisplayProps = {
+export type PumpCell = {
   label: string;
+  value: number;
   unit?: string;
-  value: string;
-  negative?: boolean;
   // Which way the digits roll when the value changes: up for more, down for less.
   direction?: number;
 };
 
-// The fuel pump's lit display: negative amounts glow red, everything else glows white.
-export function PumpDisplay({ label, unit = 'pts', value, negative = false, direction = 0 }: PumpDisplayProps) {
-  const entering = direction > 0 ? ROLL_UP : direction < 0 ? ROLL_DOWN : undefined;
+type PumpDisplayProps = {
+  cells: PumpCell[];
+};
+
+// The fuel pump: one lit window per number, in a housing that's red by day and gunmetal at night.
+export function PumpDisplay({ cells }: PumpDisplayProps) {
+  const styles = useThemedStyles(makeStyles);
+  const pump = useThemedStyles(makePumpStyles);
+  const large = cells.length === 1;
   return (
-    <View style={styles.panel}>
+    <View style={[pump.housing, styles.cells]}>
+      {cells.map((cell) => (
+        <PumpWindow key={cell.label} cell={cell} large={large} />
+      ))}
+    </View>
+  );
+}
+
+function PumpWindow({ cell, large }: { cell: PumpCell; large: boolean }) {
+  const styles = useThemedStyles(makeStyles);
+  const pump = useThemedStyles(makePumpStyles);
+  const { sign, unlit, lit, spoken } = pumpDigits(cell.value);
+  const direction = cell.direction ?? 0;
+  const entering = direction > 0 ? ROLL_UP : direction < 0 ? ROLL_DOWN : undefined;
+  const digitStyle = [pump.led, styles.digits, large && styles.large, cell.value < 0 && styles.negative];
+  return (
+    <View style={[pump.window, styles.window]} accessible accessibilityLabel={`${cell.label}: ${spoken}`}>
       <View style={styles.labels}>
         <Text style={styles.label} numberOfLines={1}>
-          {label}
+          {cell.label}
         </Text>
-        <Text style={styles.label}>{unit}</Text>
+        {cell.unit ? <Text style={styles.label}>{cell.unit}</Text> : null}
       </View>
-      <View style={styles.window}>
-        <Animated.Text key={value} entering={entering} style={[styles.digits, negative ? styles.led : styles.light]}>
-          {value}
+      <View style={styles.readout}>
+        <Text style={digitStyle}>
+          {sign}
+          <Text style={pump.unlit}>{unlit}</Text>
+        </Text>
+        <Animated.Text key={cell.value} entering={entering} style={digitStyle}>
+          {lit}
         </Animated.Text>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  panel: {
-    flex: 1,
-    backgroundColor: Colors.pump,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.pumpEdge,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    gap: Spacing.xs,
-  },
-  labels: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.sm },
-  label: {
-    flexShrink: 1,
-    fontFamily: Fonts.semiBold,
-    fontSize: 9.5,
-    letterSpacing: 1.6,
-    textTransform: 'uppercase',
-    color: Colors.pumpLabel,
-  },
-  window: { overflow: 'hidden', alignItems: 'flex-end' },
-  digits: { fontFamily: Fonts.bold, fontSize: 40, lineHeight: 46, fontVariant: ['tabular-nums'] },
-  led: { color: Colors.pumpLed, textShadowColor: Colors.pumpLedGlow, textShadowRadius: 10 },
-  light: { color: Colors.pumpLight, textShadowColor: Colors.pumpLightGlow, textShadowRadius: 10 },
-});
+const makeStyles = (ground: GroundPalette) =>
+  StyleSheet.create({
+    cells: { flexDirection: 'row', gap: Spacing.sm },
+    window: { flex: 1, gap: Spacing.xs },
+    labels: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.sm },
+    label: {
+      flexShrink: 1,
+      fontFamily: Fonts.regular,
+      fontSize: 9.5,
+      letterSpacing: 1.6,
+      textTransform: 'uppercase',
+      color: ground.pumpLabel,
+    },
+    readout: { flexDirection: 'row', overflow: 'hidden' },
+    digits: { fontSize: 30, lineHeight: 36, letterSpacing: 2 },
+    large: { fontSize: 40, lineHeight: 46 },
+    negative: { color: ground.ledNegative, textShadowColor: ground.ledNegativeGlow },
+  });

@@ -15,12 +15,12 @@ import { DashedRule } from '@/components/receipt/dashed-rule';
 import { LineItem } from '@/components/receipt/line-item';
 import { Stamp } from '@/components/receipt/stamp';
 import { sharedStyles } from '@/constants/styles';
-import { Colors, Fonts, Spacing, Type } from '@/constants/theme';
+import { Fonts, Paper, Spacing, Type } from '@/constants/theme';
 import { useSettledWhileWatching } from '@/hooks/use-settled-while-watching';
 import { formatPoints, formatReceiptNumber, pointsColor } from '@/utils/format';
 import { STATUS_LABELS } from '@/utils/entry-status';
 import { formatRelativeTime } from '@/utils/relative-time';
-import { myVotingState } from '@/utils/voting';
+import { myVotingState, tallyVotes } from '@/utils/voting';
 
 type EntryCardProps = {
   entry: Entry;
@@ -37,15 +37,20 @@ export function EntryCard({ entry, myPlayerId, votesNeeded, variant = 'list' }: 
   const settled = useSettledWhileWatching(entry.status);
 
   return (
-    <Card>
+    <Card seed={entry.id}>
       <View style={styles.receiptHeader}>
         <Text style={styles.small}>TXN {formatReceiptNumber(entry.id)}</Text>
         <Text style={styles.small}>{formatRelativeTime(entry.created_at)}</Text>
       </View>
       <View style={sharedStyles.row}>
-        <Avatar name={entry.subject.name} color={entry.subject.color} photoPath={entry.subject.photo_path} />
+        <Avatar
+          name={entry.subject.name}
+          color={entry.subject.color}
+          photoPath={entry.subject.photo_path}
+          size={variant === 'list' ? 40 : 44}
+        />
         <View style={styles.byline}>
-          <Text style={[Type.name, styles.subject]}>{entry.subject.name}</Text>
+          <Text style={Type.name}>{entry.subject.name}</Text>
           <View style={styles.badges}>
             <StatusPill status={entry.status} />
             <FiledByBadge filer={entry.filer} isSelfClaim={isSelfClaim} />
@@ -57,7 +62,12 @@ export function EntryCard({ entry, myPlayerId, votesNeeded, variant = 'list' }: 
         label={entry.rule.title}
         value={
           <Text
-            style={[Type.points, { color: pointsColor(entry.points) }, entry.status === 'rejected' && styles.struck]}>
+            style={[
+              Type.points,
+              styles.points,
+              { color: pointsColor(entry.points) },
+              entry.status === 'rejected' && styles.struck,
+            ]}>
             {formatPoints(entry.points)}
           </Text>
         }
@@ -72,10 +82,17 @@ export function EntryCard({ entry, myPlayerId, votesNeeded, variant = 'list' }: 
       ) : (
         <>
           <VotePanel entry={entry} myPlayerId={myPlayerId} votesNeeded={votesNeeded} />
-          <Barcode seed={entry.id} />
+          <Barcode seed={entry.id} caption={`${formatReceiptNumber(entry.id)} · KEEP THIS RECEIPT`} />
         </>
       )}
-      {settled ? <Stamp label={STATUS_LABELS[settled].toUpperCase()} /> : null}
+      {settled ? (
+        <Stamp
+          label={STATUS_LABELS[settled].toUpperCase()}
+          detail={
+            settled === 'confirmed' ? `${tallyVotes(entry.votes).confirmedBy.length} / ${votesNeeded} votes` : undefined
+          }
+        />
+      ) : null}
     </Card>
   );
 }
@@ -87,11 +104,11 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
-    color: Colors.muted,
+    color: Paper.muted,
   },
   byline: { flex: 1, gap: Spacing.xs },
-  subject: { fontSize: 15 },
+  points: { fontSize: 18 },
   badges: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
-  struck: { color: Colors.muted, textDecorationLine: 'line-through' },
-  note: { ...Type.body, color: Colors.ink, opacity: 0.8 },
+  struck: { color: Paper.muted, textDecorationLine: 'line-through' },
+  note: { ...Type.body, color: Paper.ink, opacity: 0.8 },
 });

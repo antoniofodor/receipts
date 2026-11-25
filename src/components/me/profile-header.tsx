@@ -4,11 +4,15 @@ import { showActionSheet } from '@/components/action-sheet';
 import { Avatar } from '@/components/avatar';
 import { haptics } from '@/components/haptics';
 import { Icon } from '@/components/icon';
-import { ErrorText, Title } from '@/components/typography';
-import { Colors, Spacing } from '@/constants/theme';
+import { PressableScale } from '@/components/pressable-scale';
+import { SignTitle } from '@/components/ground/sign-title';
+import { ErrorText } from '@/components/typography';
+import { Paper, Spacing, type GroundPalette } from '@/constants/theme';
 import { useAsyncAction } from '@/hooks/use-async-action';
 import { usePhotoPicker } from '@/hooks/use-photo-picker';
 import { useProfilePhoto } from '@/hooks/use-profile-photo';
+import { useGround } from '@/light-mode/light-mode-provider';
+import { useThemedStyles } from '@/light-mode/use-themed-styles';
 
 const PHOTO_SOURCES = [
   { label: 'Take photo', value: 'camera' },
@@ -21,12 +25,20 @@ const EXISTING_PHOTO_CHOICES = [
   { label: 'Remove photo', value: 'remove', destructive: true },
 ] as const;
 
-const AVATAR_SIZE = 64;
+const AVATAR_SIZE = 68;
 
-// Your name with your photo beside it. Everything about the photo starts from tapping it.
-export function ProfileHeader({ name, roles }: { name: string; roles: string }) {
+type ProfileHeaderProps = {
+  name: string;
+  roles: string;
+  onEditName: () => void;
+};
+
+// Your name with your photo beside it. Everything about the photo starts from tapping it; the pencil edits the name.
+export function ProfileHeader({ name, roles, onEditName }: ProfileHeaderProps) {
   const { me, change, remove } = useProfilePhoto();
+  const ground = useGround();
   const picker = usePhotoPicker();
+  const groundStyles = useThemedStyles(makeGroundStyles);
   const { busy, error, run } = useAsyncAction();
   const photoPath = me?.photo_path ?? null;
 
@@ -57,17 +69,30 @@ export function ProfileHeader({ name, roles }: { name: string; roles: string }) 
           onPress={editPhoto}
           disabled={busy}
           style={({ pressed }) => pressed && styles.pressed}>
-          <Avatar name={name} color={me?.color ?? Colors.muted} photoPath={photoPath} size={AVATAR_SIZE} />
-          <View style={styles.badge}>
+          <Avatar name={name} color={me?.color ?? Paper.muted} photoPath={photoPath} size={AVATAR_SIZE} />
+          <View style={[styles.badge, groundStyles.badge]}>
             {busy ? (
-              <ActivityIndicator size="small" color={Colors.onAccent} />
+              <ActivityIndicator size="small" color={Paper.paper} />
             ) : (
-              <Icon name="camera" size={12} color={Colors.onAccent} />
+              <Icon name="camera" size={12} color={Paper.paper} />
             )}
           </View>
         </Pressable>
         <View style={styles.name}>
-          <Title eyebrow={roles || undefined}>{name}</Title>
+          <SignTitle
+            eyebrow={roles || undefined}
+            right={
+              <PressableScale
+                accessibilityRole="button"
+                accessibilityLabel="Edit name"
+                onPress={onEditName}
+                hitSlop={8}
+                style={styles.editName}>
+                <Icon name="edit" size={18} color={ground.text} />
+              </PressableScale>
+            }>
+            {name}
+          </SignTitle>
         </View>
       </View>
       <ErrorText>{error}</ErrorText>
@@ -89,10 +114,12 @@ const styles = StyleSheet.create({
     height: BADGE_SIZE,
     borderRadius: BADGE_SIZE / 2,
     borderWidth: 2,
-    borderColor: Colors.background,
-    backgroundColor: Colors.ink,
+    backgroundColor: Paper.ink,
     alignItems: 'center',
     justifyContent: 'center',
   },
   name: { flex: 1 },
+  editName: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
 });
+
+const makeGroundStyles = (ground: GroundPalette) => StyleSheet.create({ badge: { borderColor: ground.ground } });

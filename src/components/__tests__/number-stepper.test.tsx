@@ -2,16 +2,13 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { haptics } from '@/components/haptics';
 import { NumberStepper } from '@/components/number-stepper';
-import { formatPoints } from '@/utils/format';
 
 jest.mock('@/components/haptics', () => ({
   haptics: { tap: jest.fn(), tick: jest.fn(), success: jest.fn(), warning: jest.fn() },
 }));
 
 function renderStepper(value: number, onChange = jest.fn()) {
-  return render(
-    <NumberStepper value={value} min={-20} max={-1} onChange={onChange} label="entry points" format={formatPoints} />,
-  );
+  return render(<NumberStepper value={value} min={-20} max={-1} onChange={onChange} label="entry points" />);
 }
 
 describe('NumberStepper', () => {
@@ -20,8 +17,8 @@ describe('NumberStepper', () => {
   it('shows the value on the pump display', async () => {
     await renderStepper(-15);
 
-    expect(screen.getByText('−15')).toBeTruthy();
     expect(screen.getByLabelText('entry points: −15')).toBeTruthy();
+    expect(screen.getByText('15')).toBeTruthy();
   });
 
   it('steps along the number line, so + moves a penalty toward zero', async () => {

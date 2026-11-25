@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { Colors, Spacing, Type } from '@/constants/theme';
+import { Paper, Spacing, Type } from '@/constants/theme';
 
 export const sharedStyles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
@@ -12,7 +12,7 @@ export const sharedStyles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.line,
+    borderBottomColor: Paper.rule,
   },
   pointsText: { ...Type.points, fontSize: 16 },
 });

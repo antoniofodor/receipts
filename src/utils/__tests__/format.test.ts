@@ -1,5 +1,5 @@
-import { Colors } from '@/constants/theme';
-import { formatPoints, pluralize, pointsColor } from '@/utils/format';
+import { Paper } from '@/constants/theme';
+import { formatCountdown, formatPoints, pluralize, pointsColor } from '@/utils/format';
 
 describe('formatPoints', () => {
   it('uses a real minus sign for penalties', () => {
@@ -17,9 +17,9 @@ describe('formatPoints', () => {
 
 describe('pointsColor', () => {
   it.each([
-    [-1, Colors.minus],
-    [1, Colors.plus],
-    [0, Colors.muted],
+    [-1, Paper.red],
+    [1, Paper.ink],
+    [0, Paper.muted],
   ])('colors %i points', (points, color) => {
     expect(pointsColor(points)).toBe(color);
   });
@@ -33,5 +33,13 @@ describe('pluralize', () => {
   it('picks the plural form otherwise', () => {
     expect(pluralize(0, 'try', 'tries')).toBe('0 tries');
     expect(pluralize(3, 'try', 'tries')).toBe('3 tries');
+  });
+});
+
+describe('formatCountdown', () => {
+  it('shows minutes and two-digit seconds', () => {
+    expect(formatCountdown(60)).toBe('1:00');
+    expect(formatCountdown(42)).toBe('0:42');
+    expect(formatCountdown(5)).toBe('0:05');
   });
 });

@@ -1,22 +1,25 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { View } from 'react-native';
 
 import { createEntry } from '@/api/entries';
 import { entryListQueries, tripQueries } from '@/api/trip-queries';
 import { BackLink } from '@/components/back-link';
 import { Button } from '@/components/button';
+import { Card } from '@/components/card';
+import { ClaimSlipHeader } from '@/components/log/claim-slip-header';
 import { ChosenRule } from '@/components/log/chosen-rule';
 import { PhotoPickerField } from '@/components/log/photo-picker-field';
 import { ruleFromLogParams, type LogRouteParams } from '@/components/log/log-route';
 import { PlayerPicker } from '@/components/log/player-picker';
 import { RuleKindButtons } from '@/components/log/rule-kind-buttons';
 import { RulePicker } from '@/components/log/rule-picker';
+import { SlipSection } from '@/components/log/slip-section';
+import { Barcode } from '@/components/receipt/barcode';
 import { RulePointsFields } from '@/components/rules/rule-points-fields';
 import { Screen } from '@/components/screen';
 import { TextField } from '@/components/text-fields';
-import { ErrorText, SectionLabel, Title } from '@/components/typography';
+import { SignTitle } from '@/components/ground/sign-title';
+import { ErrorText } from '@/components/typography';
 import { NOTE_MAX_LENGTH } from '@/constants/game-rules';
-import { sharedStyles } from '@/constants/styles';
 import { useAsyncAction } from '@/hooks/use-async-action';
 import { useLogEntryForm } from '@/hooks/use-log-entry-form';
 import { useInvalidateTripQueries, useTripQuery } from '@/hooks/use-trip-query';
@@ -46,75 +49,76 @@ export default function LogScreen() {
   return (
     <Screen>
       <BackLink label="Cancel" onPress={() => router.back()} />
-      <Title>Log points</Title>
+      <SignTitle>Log it</SignTitle>
       <ErrorText>{players.error ?? rules.error}</ErrorText>
 
-      <View style={sharedStyles.stack}>
-        <SectionLabel>Who</SectionLabel>
-        {players.data ? (
-          <PlayerPicker
-            players={players.data}
-            myPlayerId={membership.player_id}
-            selectedId={form.subjectId}
-            onSelect={form.selectSubject}
-          />
-        ) : null}
-      </View>
+      <Card seed={`claim-slip-${membership.trip_id}`}>
+        <ClaimSlipHeader tripName={membership.trip_name} />
+        <SlipSection label="Who">
+          {players.data ? (
+            <PlayerPicker
+              players={players.data}
+              myPlayerId={membership.player_id}
+              selectedId={form.subjectId}
+              onSelect={form.selectSubject}
+            />
+          ) : null}
+        </SlipSection>
 
-      <View style={sharedStyles.stack}>
-        <SectionLabel>What happened</SectionLabel>
-        {form.selection.type === 'none' ? (
-          <>
-            <RuleKindButtons value={form.ruleKind} onChange={form.setRuleKind} />
-            {form.ruleKind ? (
-              <RulePicker
-                rules={rules.data ?? []}
-                kind={form.ruleKind}
-                query={form.query}
-                onChangeQuery={form.setQuery}
-                onPickRule={form.pickRule}
-                onCreateRule={form.startNewRule}
-              />
-            ) : null}
-          </>
-        ) : (
-          <ChosenRule
-            title={form.selection.type === 'existing' ? form.selection.rule.title : form.selection.title}
-            points={form.points ?? 0}
-            isNew={form.selection.type === 'new'}
-            onChange={form.clearRule}>
-            {form.selection.type === 'new' ? (
-              <>
+        <SlipSection label="What happened">
+          {form.selection.type === 'none' ? (
+            <>
+              <RuleKindButtons value={form.ruleKind} onChange={form.setRuleKind} />
+              {form.ruleKind ? (
+                <RulePicker
+                  rules={rules.data ?? []}
+                  kind={form.ruleKind}
+                  query={form.query}
+                  onChangeQuery={form.setQuery}
+                  onPickRule={form.pickRule}
+                  onCreateRule={form.startNewRule}
+                />
+              ) : null}
+            </>
+          ) : (
+            <ChosenRule
+              title={form.selection.type === 'existing' ? form.selection.rule.title : form.selection.title}
+              points={form.points ?? 0}
+              isNew={form.selection.type === 'new'}
+              onChange={form.clearRule}>
+              {form.selection.type === 'new' ? (
                 <RulePointsFields
                   kind={form.selection.kind}
                   magnitude={form.selection.magnitude}
                   onChangeKind={form.setNewRuleKind}
                   onChangeMagnitude={form.setNewRuleMagnitude}
                 />
-              </>
-            ) : null}
-          </ChosenRule>
-        )}
-      </View>
+              ) : null}
+            </ChosenRule>
+          )}
+        </SlipSection>
 
-      <PhotoPickerField
-        photos={form.photos}
-        photosLeft={form.photosLeft}
-        onAdd={form.addPhotos}
-        onRemove={form.removePhoto}
-      />
+        <SlipSection label="Photos (optional)">
+          <PhotoPickerField
+            photos={form.photos}
+            photosLeft={form.photosLeft}
+            onAdd={form.addPhotos}
+            onRemove={form.removePhoto}
+          />
+        </SlipSection>
 
-      <View style={sharedStyles.stack}>
-        <SectionLabel>Note (optional)</SectionLabel>
-        <TextField
-          value={form.note}
-          onChangeText={form.setNote}
-          placeholder="What happened?"
-          multiline
-          maxLength={NOTE_MAX_LENGTH}
-          accessibilityLabel="Note"
-        />
-      </View>
+        <SlipSection label="Note (optional)">
+          <TextField
+            value={form.note}
+            onChangeText={form.setNote}
+            placeholder="What happened?"
+            multiline
+            maxLength={NOTE_MAX_LENGTH}
+            accessibilityLabel="Note"
+          />
+        </SlipSection>
+        <Barcode seed={membership.trip_id} caption={membership.join_code} />
+      </Card>
 
       <ErrorText>{submit.error}</ErrorText>
       <Button

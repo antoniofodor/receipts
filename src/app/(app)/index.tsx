@@ -2,9 +2,13 @@ import type { Entry } from '@/api/entries';
 import { tripQueries } from '@/api/trip-queries';
 import { AnimatedListItem } from '@/components/animated-list-item';
 import { EntryCard } from '@/components/feed/entry-card';
+import { MyStandingPump } from '@/components/feed/my-standing-pump';
 import { InviteCard } from '@/components/invite-card';
 import { Screen } from '@/components/screen';
-import { ErrorText, MutedText, SectionLabel, Title } from '@/components/typography';
+import { NeonSign } from '@/components/ground/neon-sign';
+import { SignTitle } from '@/components/ground/sign-title';
+import { TapeLabel } from '@/components/tape-label';
+import { ErrorText, MutedText } from '@/components/typography';
 import { useKeptWhileFocused } from '@/hooks/use-kept-while-focused';
 import { useTripQuery } from '@/hooks/use-trip-query';
 import { useMembership } from '@/session/session-provider';
@@ -34,7 +38,10 @@ export default function FeedScreen() {
 
   return (
     <Screen refreshing={feed.refreshing || awaiting.refreshing} onRefresh={refresh}>
-      <Title eyebrow={`${membership.trip_name} · ${membership.player_name}`}>Feed</Title>
+      <SignTitle eyebrow={`${membership.trip_name} · ${membership.player_name}`} right={<NeonSign>Open</NeonSign>}>
+        Feed
+      </SignTitle>
+      <MyStandingPump myPlayerId={membership.player_id} />
       <ErrorText>{feed.error ?? awaiting.error}</ErrorText>
 
       {hasNoEntries ? (
@@ -46,14 +53,14 @@ export default function FeedScreen() {
 
       {voteSection.items.length > 0 ? (
         <>
-          <SectionLabel count={stillNeedingMyVote > 0 ? stillNeedingMyVote : undefined}>Needs your vote</SectionLabel>
+          <TapeLabel count={stillNeedingMyVote > 0 ? stillNeedingMyVote : undefined}>Needs your vote</TapeLabel>
           {voteSection.items.map(renderEntry)}
         </>
       ) : null}
 
       {otherEntries.length > 0 ? (
         <>
-          <SectionLabel>Recent</SectionLabel>
+          <TapeLabel>Recent</TapeLabel>
           {otherEntries.map(renderEntry)}
         </>
       ) : null}

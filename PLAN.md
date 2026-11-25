@@ -22,21 +22,22 @@ Anything that doesn't serve those five is out of the MVP.
 |---|---|
 | Trip | Organiser creates a trip, adds player names, gets a 6-letter join code |
 | Identity | Join with code, tap your name, set a 4-digit PIN. Phone stays signed in. Rejoin on a new phone with the PIN |
-| Rulebook | Preset rules, list and search, anyone can create a rule (−25 to +25) |
+| Rulebook | Starter rule packs picked at trip creation (organiser can add more later), list and search, anyone can create a rule (−25 to +25) |
 | Log entry | Pick player (self allowed), pick or create rule, points, note, up to 3 photos |
 | Voting | Confirm or reject. Threshold of 3, set per trip. The person who logged it and the person it's about can't vote |
 | Feed | Newest first, with pending, confirmed or rejected state and a "Needs your vote" banner |
 | Entry detail | Photos full-size, who voted which way, comments with one level of replies |
 | Leaderboard | Confirmed points only, rank, pending count per player, live updates |
 
-**After the MVP**, in rough priority order: push notifications, groom ×2 multiplier and daily overrule, reactions, video evidence, daily standings and forfeit zone, organiser tools (edit or merge rules, reset PIN in the app), offline queue, end-of-trip awards and recap.
+**After the MVP**, in rough priority order: push notifications, groom ×2 multiplier and daily overrule, reactions, video evidence, daily standings and forfeit zone, organiser tools (merge rules, reset PIN in the app), offline queue, end-of-trip awards and recap.
 
 ## Decisions taken (change any of these)
 
 - **Vote threshold is a per-trip setting**, default 3. A group of 5 has only 3 eligible voters per entry, so a smaller group can lower it.
 - **Pending entries don't expire** in the MVP. They stay in "Needs your vote" until they reach 3 confirms or 3 rejects.
 - **Votes can't be changed** once cast. This keeps the logic simple.
-- **Rules join the rulebook immediately**, even if the entry they were created for is later rejected. The organiser can delete rules directly in the database until organiser tools exist.
+- **Rules join the rulebook immediately**, even if the entry they were created for is later rejected.
+- **A trip's rules are its own**, whether they came from a pack or were added on the trip. The organiser can edit or delete any rule, and whoever added a rule can edit or delete theirs. Entries keep the points they were logged with; deleting a rule archives it so its entries stay.
 - **Photos only**, compressed on the phone to about 1600px JPEG before upload. They upload first and the entry is saved with them in one step, so no phone ever sees an entry with its photos missing. An upload that succeeds before a failed save leaves an unused file behind; a cleanup job for those comes with the public release.
 - **Distribution is decided at milestone 7.** The same Expo codebase can ship as a native app (Android file, iPhone TestFlight) or as an installable web app.
 
@@ -63,6 +64,8 @@ All rules that matter are enforced in the database, not the app:
 
 Supabase anonymous sign-in on first open. The session is stored with Supabase's recommended large-secure-store pattern: the session itself sits in AsyncStorage, encrypted with a key held in SecureStore, because SecureStore limits the size of each value. The `devices` table links the anonymous user to a player, so one player can have more than one phone.
 
+Accounts are optional. Creating one adds an email to the phone's anonymous sign-in (confirmed with a 6-digit code), keeping the same user id, so the trip and everything else carry over. Signing in on another phone with that email gets the account back. Accounts own custom rule packs, and `account_players` keeps every trip a sign-in has played, for past trips and achievements later. Sign in with Apple and Google come at milestone 7, with a real build.
+
 ## Data model
 
 ```
@@ -70,7 +73,9 @@ trips      id, name, join_code, vote_threshold (default 3), created_at
 players    id, trip_id, name, color, is_groom, is_organiser, pin_hash
 devices    auth_user_id (pk), player_id, trip_id, last_seen
 rules      id, trip_id, title, points, kind (penalty|bonus),
-           created_by, is_preset, archived, created_at
+           created_by, is_preset, pack_id, archived, created_at
+rule_packs       id (slug), name, position, published     catalog, readable by any signed-in phone
+rule_pack_rules  pack_id, title, points, position
 entries    id, trip_id, subject_id, filed_by, rule_id, points, note,
            status (pending|confirmed|rejected), created_at, resolved_at
 evidence   id, entry_id, storage_path, width, height
@@ -87,10 +92,11 @@ Folder conventions are in [CLAUDE.md](CLAUDE.md). Routes:
 src/app/
   _layout.tsx          route guard: trip screens if this phone is in a trip, otherwise join / create
   join.tsx             enter code, pick name, PIN (also "Create a trip")
-  create-trip.tsx      trip name, player names, groom, vote threshold, PIN
+  create-trip.tsx      trip name, player names, groom, vote threshold, rule packs, PIN
   (app)/index.tsx      feed: leaderboard face strip, needs-vote banner, entry cards
   (app)/board.tsx      full leaderboard
   (app)/rules.tsx      rulebook list, search, add rule
+  rule-packs.tsx       modal: preview rule packs, organiser adds the rules the trip is missing
   (app)/me.tsx         trip info, invite code, leave
   player/[id].tsx      one player: standing, pending and confirmed entries
   log.tsx              (milestone 3) modal: photos, who, rule search or create, points, note

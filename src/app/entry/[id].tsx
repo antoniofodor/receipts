@@ -10,8 +10,8 @@ import { EntryPhotos } from '@/components/feed/entry-photos';
 import { Screen } from '@/components/screen';
 import { ShareEntryButton } from '@/components/share/share-entry-button';
 import { ErrorText, MutedText } from '@/components/typography';
-import { Colors } from '@/constants/theme';
 import { useTripQuery } from '@/hooks/use-trip-query';
+import { useGround } from '@/light-mode/light-mode-provider';
 import { useMembership } from '@/session/session-provider';
 import { canDeleteEntry } from '@/utils/voting';
 
@@ -19,12 +19,13 @@ export default function EntryScreen() {
   const membership = useMembership();
   const { id: entryId } = useLocalSearchParams<{ id: string }>();
   const entry = useTripQuery(tripQueries.entry, entryId);
+  const ground = useGround();
 
   return (
     <Screen refreshing={entry.refreshing} onRefresh={entry.refresh}>
       <View style={styles.header}>
         <BackLink onPress={() => router.back()} />
-        {entry.data ? <ShareEntryButton entryId={entry.data.id} color={Colors.ink} /> : null}
+        {entry.data ? <ShareEntryButton entryId={entry.data.id} color={ground.text} /> : null}
       </View>
       <ErrorText>{entry.error}</ErrorText>
       {entry.data ? (

@@ -1,11 +1,12 @@
 import { Button } from '@/components/button';
 import { Screen } from '@/components/screen';
-import { MutedText, Title } from '@/components/typography';
+import { SignTitle } from '@/components/ground/sign-title';
+import { MutedText } from '@/components/typography';
 
 export function StartupError({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
     <Screen>
-      <Title>Couldn&apos;t connect</Title>
+      <SignTitle>{"Couldn't connect"}</SignTitle>
       <MutedText>{message}</MutedText>
       <Button title="Try again" onPress={onRetry} />
     </Screen>

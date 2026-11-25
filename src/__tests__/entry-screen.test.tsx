@@ -79,7 +79,7 @@ describe('Entry screen', () => {
     const replies = await screen.findByLabelText('Replies to Dev');
     expect(within(replies).getByText('Stirrers have no liquid going up them')).toBeTruthy();
     expect(within(replies).queryByText('Lies')).toBeNull();
-    expect(screen.getByText('Comments (3)')).toBeTruthy();
+    expect(screen.getByRole('header', { name: 'Comments, 3' })).toBeTruthy();
   });
 
   it('shows my comment straight away while the server saves it', async () => {

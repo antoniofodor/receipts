@@ -24,7 +24,16 @@ jest.mock('@/api/players', () => ({
 }));
 jest.mock('@/api/rules', () => ({
   getRules: jest.fn().mockResolvedValue([
-    { id: 'straw', title: 'Drinking from a straw', points: -5, is_preset: true, created_by: null, created_at: '' },
+    {
+      id: 'straw',
+      title: 'Drinking from a straw',
+      points: -5,
+      is_preset: true,
+      created_by: null,
+      created_at: '',
+      pack_id: null,
+      custom_pack_id: null,
+    },
     {
       id: 'karaoke',
       title: 'Karaoke performance, full song',
@@ -32,6 +41,8 @@ jest.mock('@/api/rules', () => ({
       is_preset: true,
       created_by: null,
       created_at: '',
+      pack_id: null,
+      custom_pack_id: null,
     },
   ]),
 }));

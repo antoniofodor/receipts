@@ -8,9 +8,17 @@ import { createTestQueryClient } from '@/test-utils/render-with-query-client';
 
 jest.mock('@/api/supabase-client', () => ({ supabase: {} }));
 jest.mock('@/api/realtime', () => ({ subscribeToTripChanges: jest.fn() }));
-jest.mock('@/session/session-provider', () => ({ useMembership: () => ({ trip_id: 'trip-1' }) }));
+const mockReloadMembership = jest.fn();
+jest.mock('@/session/session-provider', () => ({
+  useMembership: () => ({ trip_id: 'trip-1' }),
+  useSession: () => ({ reloadMembership: mockReloadMembership }),
+}));
 
 const subscribeMock = jest.mocked(subscribeToTripChanges);
+
+beforeEach(() => {
+  mockReloadMembership.mockReset().mockResolvedValue(undefined);
+});
 
 async function renderLiveUpdates() {
   const unsubscribe = jest.fn();
@@ -73,6 +81,25 @@ describe('useTripLiveUpdates', () => {
       ['rules', 'trip-1'],
       ['players', 'trip-1'],
     ]);
+  });
+
+  it("reloads this phone's own name when a player changes, since another phone may be the same player", async () => {
+    const { emit } = await renderLiveUpdates();
+
+    emit('votes');
+    expect(mockReloadMembership).not.toHaveBeenCalled();
+
+    emit('players');
+    expect(mockReloadMembership).toHaveBeenCalledTimes(1);
+  });
+
+  it('reloads my name after reconnecting too, and shrugs off a failed reload', async () => {
+    mockReloadMembership.mockRejectedValue(new Error('No connection'));
+    const { goLive } = await renderLiveUpdates();
+
+    goLive();
+
+    expect(mockReloadMembership).toHaveBeenCalledTimes(1);
   });
 
   it('unsubscribes when the trip screens close', async () => {

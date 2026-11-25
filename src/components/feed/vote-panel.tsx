@@ -6,8 +6,7 @@ import { VoteTallyDots } from '@/components/feed/vote-tally-dots';
 import { DashedRule } from '@/components/receipt/dashed-rule';
 import { LineItem } from '@/components/receipt/line-item';
 import { MutedText } from '@/components/typography';
-import { sharedStyles } from '@/constants/styles';
-import { Colors, Fonts, Spacing } from '@/constants/theme';
+import { Fonts, Paper, Spacing } from '@/constants/theme';
 import { myVotingState, tallyVotes } from '@/utils/voting';
 
 type VotePanelProps = {
@@ -31,13 +30,7 @@ export function VotePanel({ entry, myPlayerId, votesNeeded }: VotePanelProps) {
     <View style={styles.panel}>
       <DashedRule />
       {entry.status === 'pending' ? (
-        <View style={sharedStyles.row}>
-          <VoteTallyDots confirms={confirmedBy.length} votesNeeded={votesNeeded} />
-          <MutedText>
-            {confirmedBy.length} of {votesNeeded} approvals
-            {rejectedBy.length > 0 ? ` · ${rejectedBy.length} declined` : ''}
-          </MutedText>
-        </View>
+        <VoteTallyDots confirms={confirmedBy.length} votesNeeded={votesNeeded} showCount />
       ) : null}
 
       {confirmedBy.length > 0 ? <DetailLine label="Approved by" value={confirmedBy.join(', ')} /> : null}
@@ -65,14 +58,14 @@ function DetailLine({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
   panel: { gap: Spacing.sm },
-  detailLabel: { fontFamily: Fonts.regular, fontSize: 11.5, letterSpacing: 0.8, color: Colors.muted },
+  detailLabel: { fontFamily: Fonts.regular, fontSize: 11.5, letterSpacing: 0.8, color: Paper.muted },
   detailValue: {
     flexShrink: 1,
     fontFamily: Fonts.bold,
     fontSize: 11.5,
     textTransform: 'uppercase',
     textAlign: 'right',
-    color: Colors.ink,
+    color: Paper.ink,
   },
-  myVote: { fontFamily: Fonts.bold, fontSize: 12, letterSpacing: 1, textTransform: 'uppercase', color: Colors.ink },
+  myVote: { fontFamily: Fonts.bold, fontSize: 12, letterSpacing: 1, textTransform: 'uppercase', color: Paper.ink },
 });

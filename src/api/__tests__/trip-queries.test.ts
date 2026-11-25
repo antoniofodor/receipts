@@ -1,4 +1,4 @@
-import { liveTables, queriesRefreshedBy, tripQueries, tripQueryKey } from '@/api/trip-queries';
+import { liveTables, queriesRefreshedBy, queriesShowingPlayers, tripQueries, tripQueryKey } from '@/api/trip-queries';
 
 jest.mock('@/api/supabase-client', () => ({ supabase: {} }));
 
@@ -41,6 +41,10 @@ describe('trip queries', () => {
       'leaderboard',
       'player-entries',
     ]);
+  });
+
+  it('refreshes everywhere a player shows, live, when one changes their name or photo', () => {
+    expect(names(queriesRefreshedBy('players'))).toEqual(names(queriesShowingPlayers));
   });
 
   it('refreshes everywhere an avatar shows when a player changes their photo', () => {

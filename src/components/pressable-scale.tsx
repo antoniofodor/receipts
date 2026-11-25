@@ -6,7 +6,7 @@ import { Springs } from '@/constants/theme';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-type PressableScaleProps = Omit<PressableProps, 'style'> & {
+export type PressableScaleProps = Omit<PressableProps, 'style'> & {
   style?: StyleProp<ViewStyle>;
   pressedScale?: number;
   feedback?: keyof typeof haptics | 'none';

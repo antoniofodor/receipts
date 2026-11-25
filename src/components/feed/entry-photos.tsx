@@ -2,7 +2,8 @@ import { Image } from 'expo-image';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import type { Photo } from '@/api/photos';
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { EvidencePrint } from '@/components/feed/evidence-print';
+import { Paper, Radius, Spacing } from '@/constants/theme';
 import { feedPhotoAspectRatio } from '@/utils/photo-size';
 
 type EntryPhotosProps = {
@@ -23,14 +24,7 @@ export function EntryPhotos({ photos, layout, onPress }: EntryPhotosProps) {
     return (
       <View style={styles.fullStack}>
         {photos.map((photo, index) => (
-          <Image
-            key={photo.id}
-            source={photoSource(photo)}
-            style={[styles.photo, { aspectRatio: photo.width / photo.height }]}
-            contentFit="contain"
-            transition={150}
-            accessibilityLabel={`Photo ${index + 1} of ${photos.length}`}
-          />
+          <EvidencePrint key={photo.id} photo={photo} source={photoSource(photo)} index={index} count={photos.length} />
         ))}
       </View>
     );
@@ -64,8 +58,8 @@ export function EntryPhotos({ photos, layout, onPress }: EntryPhotosProps) {
 }
 
 const styles = StyleSheet.create({
-  photo: { width: '100%', borderRadius: Radius.md, backgroundColor: Colors.line },
+  photo: { width: '100%', borderRadius: Radius.md, backgroundColor: Paper.rule },
   strip: { flexDirection: 'row', gap: Spacing.xs },
   square: { flex: 1, width: undefined, aspectRatio: 1 },
-  fullStack: { gap: Spacing.sm },
+  fullStack: { gap: Spacing.xl, paddingTop: Spacing.sm },
 });

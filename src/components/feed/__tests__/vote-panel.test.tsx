@@ -26,6 +26,14 @@ function renderPanel(entry = makeEntry(), me = players.sully.id) {
 describe('VotePanel', () => {
   beforeEach(() => jest.clearAllMocks());
 
+  it('offers Approve and Decline as keys, with the duct tape left out for screen readers', async () => {
+    await renderPanel();
+
+    expect(screen.getByRole('button', { name: 'Decline' })).toBeEnabled();
+    expect(screen.queryByTestId('duct-tape')).toBeNull();
+    expect(screen.getByTestId('duct-tape', { includeHiddenElements: true }).props.pointerEvents).toBe('none');
+  });
+
   it('lets a bystander approve', async () => {
     await renderPanel();
 
@@ -56,7 +64,7 @@ describe('VotePanel', () => {
   it('shows the tally and who has voted', async () => {
     await renderPanel(makeEntry({ votes: [vote('tommo', true), vote('dev', false)] }));
 
-    expect(screen.getByText('1 of 3 approvals · 1 declined')).toBeTruthy();
+    expect(screen.getByText('1 of 3 approvals')).toBeTruthy();
     expect(screen.getByText('Approved by')).toBeTruthy();
     expect(screen.getByText('Tommo')).toBeTruthy();
     expect(screen.getByText('Declined by')).toBeTruthy();

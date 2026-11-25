@@ -1,23 +1,28 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { View } from 'react-native';
 
 import { createTrip } from '@/api/trips';
 import { BackLink } from '@/components/back-link';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { ORGANISER_ROW_ID, PlayerListEditor, type PlayerRow } from '@/components/create-trip/player-list-editor';
+import { RulePackPicker } from '@/components/create-trip/rule-pack-picker';
 import {
   DEFAULT_VOTE_THRESHOLD,
   maxVoteThreshold,
-  VoteThresholdCard,
-} from '@/components/create-trip/vote-threshold-card';
+  VoteThresholdField,
+} from '@/components/create-trip/vote-threshold-field';
+import { DashedRule } from '@/components/receipt/dashed-rule';
 import { Screen } from '@/components/screen';
 import { PIN_LENGTH, PinField, TextField } from '@/components/text-fields';
-import { ErrorText, Label, MutedText, Title } from '@/components/typography';
-import { sharedStyles } from '@/constants/styles';
+import { SignTitle } from '@/components/ground/sign-title';
+import { TapeLabel } from '@/components/tape-label';
+import { ErrorText, Label, MutedText } from '@/components/typography';
 import { useAsyncAction } from '@/hooks/use-async-action';
+import { useCustomPacks } from '@/hooks/use-custom-packs';
+import { useRulePacks } from '@/hooks/use-rule-packs';
 import { useSession } from '@/session/session-provider';
+import { defaultRulePackIds, toggled } from '@/utils/rule-packs';
 
 const MIN_PLAYERS = 3;
 const INITIAL_ROWS: PlayerRow[] = [
@@ -36,6 +41,13 @@ export default function CreateTripScreen() {
   const [groomRowId, setGroomRowId] = useState<string | null>(null);
   const [requestedVoteThreshold, setRequestedVoteThreshold] = useState(DEFAULT_VOTE_THRESHOLD);
   const [pin, setPin] = useState('');
+  const rulePacks = useRulePacks();
+  // Null until the organiser touches a pack, so the default follows the catalog once it loads.
+  const [pickedPackIds, setPickedPackIds] = useState<string[] | null>(null);
+  const customPacks = useCustomPacks();
+  const [customPackIds, setCustomPackIds] = useState<string[]>([]);
+  // Before the catalog loads there's nothing to pick from, so the server's default applies.
+  const rulePackIds = pickedPackIds ?? (rulePacks.packs ? defaultRulePackIds(rulePacks.packs) : undefined);
 
   const namedRows = rows.map((row) => ({ ...row, name: row.name.trim() })).filter((row) => row.name.length > 0);
   const organiserName = namedRows.find((row) => row.id === ORGANISER_ROW_ID)?.name ?? '';
@@ -69,6 +81,8 @@ export default function CreateTripScreen() {
         groomName: namedRows.find((row) => row.id === groomRowId)?.name ?? null,
         voteThreshold,
         pin,
+        rulePackIds,
+        customPackIds,
       });
       await reloadMembership();
     });
@@ -77,9 +91,9 @@ export default function CreateTripScreen() {
   return (
     <Screen>
       <BackLink onPress={() => router.back()} />
-      <Title>Create a trip</Title>
+      <SignTitle>New trip</SignTitle>
 
-      <View style={sharedStyles.stack}>
+      <Card seed="new-trip-name">
         <Label>Trip name</Label>
         <TextField
           value={tripName}
@@ -88,8 +102,9 @@ export default function CreateTripScreen() {
           maxLength={60}
           accessibilityLabel="Trip name"
         />
-      </View>
+      </Card>
 
+      <TapeLabel>Who&apos;s in</TapeLabel>
       <PlayerListEditor
         rows={rows}
         groomRowId={groomRowId}
@@ -99,9 +114,20 @@ export default function CreateTripScreen() {
         onToggleGroom={(rowId) => setGroomRowId((current) => (current === rowId ? null : rowId))}
       />
 
-      <VoteThresholdCard value={voteThreshold} playerCount={namedRows.length} onChange={setRequestedVoteThreshold} />
-
-      <Card>
+      <TapeLabel>House rules</TapeLabel>
+      <Card seed="new-trip-house-rules">
+        <VoteThresholdField value={voteThreshold} playerCount={namedRows.length} onChange={setRequestedVoteThreshold} />
+        <DashedRule />
+        <RulePackPicker
+          packs={rulePacks.packs}
+          error={rulePacks.error}
+          pickedIds={rulePackIds ?? []}
+          onToggle={(packId) => setPickedPackIds(toggled(rulePackIds ?? [], packId))}
+          customPacks={customPacks.packs}
+          pickedCustomIds={customPackIds}
+          onToggleCustom={(packId) => setCustomPackIds((current) => toggled(current, packId))}
+        />
+        <DashedRule />
         <Label>Your 4-digit PIN</Label>
         <PinField value={pin} onChangeText={setPin} accessibilityLabel="Your PIN" />
         <MutedText>You&apos;ll need it on a new phone.</MutedText>

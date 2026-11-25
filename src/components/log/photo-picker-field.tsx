@@ -1,12 +1,13 @@
 import { Image } from 'expo-image';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { LocalPhoto } from '@/api/photos';
 import { showActionSheet } from '@/components/action-sheet';
-import { Button } from '@/components/button';
-import { ErrorText, SectionLabel } from '@/components/typography';
+import { Icon } from '@/components/icon';
+import { PressableScale } from '@/components/pressable-scale';
+import { ErrorText } from '@/components/typography';
 import { sharedStyles } from '@/constants/styles';
-import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
+import { Fonts, Paper, Spacing, Type } from '@/constants/theme';
 import { useAsyncAction } from '@/hooks/use-async-action';
 import { usePhotoPicker } from '@/hooks/use-photo-picker';
 
@@ -36,51 +37,70 @@ export function PhotoPickerField({ photos, photosLeft, onAdd, onRemove }: PhotoP
 
   return (
     <View style={sharedStyles.stack}>
-      <SectionLabel>Photos (optional)</SectionLabel>
-      {photos.length > 0 ? (
-        <View style={styles.thumbnails}>
-          {photos.map((photo, index) => (
-            <View key={photo.uri} style={styles.thumbnail}>
-              <Image source={{ uri: photo.uri }} style={StyleSheet.absoluteFill} contentFit="cover" />
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`Remove photo ${index + 1}`}
-                onPress={() => onRemove(photo.uri)}
-                hitSlop={8}
-                style={styles.remove}>
-                <Text style={styles.removeText}>×</Text>
-              </Pressable>
-            </View>
-          ))}
-        </View>
-      ) : null}
-      {photosLeft > 0 ? <Button title="Add photo" variant="secondary" onPress={addPhoto} loading={busy} /> : null}
+      <View style={styles.thumbnails}>
+        {photos.map((photo, index) => (
+          <View key={photo.uri} style={styles.thumbnail}>
+            <Image source={{ uri: photo.uri }} style={styles.image} contentFit="cover" />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Remove photo ${index + 1}`}
+              onPress={() => onRemove(photo.uri)}
+              hitSlop={10}
+              style={styles.remove}>
+              <Text style={styles.removeText}>×</Text>
+            </Pressable>
+          </View>
+        ))}
+        {photosLeft > 0 ? (
+          <PressableScale
+            accessibilityRole="button"
+            accessibilityLabel="Add photo"
+            accessibilityState={{ busy, disabled: busy }}
+            disabled={busy}
+            onPress={addPhoto}
+            style={[styles.thumbnail, styles.addTile]}>
+            {busy ? (
+              <ActivityIndicator color={Paper.ink} />
+            ) : (
+              <>
+                <Icon name="camera" size={22} color={Paper.ink} />
+                <Text style={styles.addText}>Add</Text>
+              </>
+            )}
+          </PressableScale>
+        ) : null}
+      </View>
       <ErrorText>{error}</ErrorText>
     </View>
   );
 }
 
-const THUMBNAIL_SIZE = 96;
+const THUMBNAIL_SIZE = 88;
+const REMOVE_SIZE = 24;
 
 const styles = StyleSheet.create({
-  thumbnails: { flexDirection: 'row', gap: Spacing.sm },
-  thumbnail: {
-    width: THUMBNAIL_SIZE,
-    height: THUMBNAIL_SIZE,
-    borderRadius: Radius.md,
-    overflow: 'hidden',
-    backgroundColor: Colors.line,
-  },
+  thumbnails: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+  thumbnail: { width: THUMBNAIL_SIZE, height: THUMBNAIL_SIZE },
+  image: { ...StyleSheet.absoluteFill, backgroundColor: Paper.rule },
   remove: {
     position: 'absolute',
-    top: Spacing.xs,
-    right: Spacing.xs,
-    width: 24,
-    height: 24,
-    borderRadius: Radius.pill,
-    backgroundColor: Colors.ink,
+    top: -REMOVE_SIZE / 3,
+    right: -REMOVE_SIZE / 3,
+    width: REMOVE_SIZE,
+    height: REMOVE_SIZE,
+    borderRadius: REMOVE_SIZE / 2,
+    backgroundColor: Paper.ink,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  removeText: { fontFamily: Fonts.bold, color: Colors.onAccent, fontSize: 15, lineHeight: 18 },
+  removeText: { fontFamily: Fonts.bold, color: Paper.paper, fontSize: 15, lineHeight: 18 },
+  addTile: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: Paper.ink,
+  },
+  addText: { ...Type.key, fontSize: 14, color: Paper.ink },
 });

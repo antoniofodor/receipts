@@ -48,10 +48,10 @@ describe('Player screen', () => {
 
     await renderWithQueryClient(<PlayerScreen />);
 
-    expect(await screen.findByText('Pending (1)')).toBeTruthy();
+    expect(await screen.findByRole('header', { name: 'Pending, 1' })).toBeTruthy();
     expect(screen.getByRole('header', { name: 'Tommo' })).toBeTruthy();
     expect(screen.getByText('#4 · 1 pending')).toBeTruthy();
-    expect(screen.getByText('Approved (1)')).toBeTruthy();
+    expect(screen.getByRole('header', { name: 'Approved, 1' })).toBeTruthy();
     expect(screen.getByText('Asleep before midnight')).toBeTruthy();
     expect(screen.getByText('Drinking from a straw')).toBeTruthy();
     expect(getPlayerEntries).toHaveBeenCalledWith('trip-1', 'tommo');

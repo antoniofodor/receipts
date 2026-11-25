@@ -46,10 +46,20 @@ describe('ProfileHeader', () => {
 
   it('shows my name and roles beside my photo', async () => {
     serverNowHas(null);
-    await renderWithQueryClient(<ProfileHeader name="Sully" roles="Organiser" />);
+    await renderWithQueryClient(<ProfileHeader name="Sully" roles="Organiser" onEditName={jest.fn()} />);
 
     expect(screen.getByRole('header', { name: 'Sully' })).toBeTruthy();
     expect(screen.getByText('Organiser')).toBeTruthy();
+  });
+
+  it('opens the name editor from the pencil beside my name', async () => {
+    serverNowHas(null);
+    const onEditName = jest.fn();
+    await renderWithQueryClient(<ProfileHeader name="Sully" roles="" onEditName={onEditName} />);
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Edit name' }));
+
+    expect(onEditName).toHaveBeenCalled();
   });
 
   it('adds a photo when I tap my avatar and pick one', async () => {
@@ -60,7 +70,7 @@ describe('ProfileHeader', () => {
       serverNowHas('trip-1/sully/new.jpg');
       return 'trip-1/sully/new.jpg';
     });
-    await renderWithQueryClient(<ProfileHeader name="Sully" roles="" />);
+    await renderWithQueryClient(<ProfileHeader name="Sully" roles="" onEditName={jest.fn()} />);
 
     await fireEvent.press(await screen.findByRole('button', { name: 'Add profile photo' }));
 
@@ -72,7 +82,7 @@ describe('ProfileHeader', () => {
     serverNowHas(null);
     jest.mocked(showActionSheet).mockResolvedValue('camera');
     picker.takeProfilePhoto.mockResolvedValue(null);
-    await renderWithQueryClient(<ProfileHeader name="Sully" roles="" />);
+    await renderWithQueryClient(<ProfileHeader name="Sully" roles="" onEditName={jest.fn()} />);
 
     await fireEvent.press(await screen.findByRole('button', { name: 'Add profile photo' }));
 
@@ -86,7 +96,7 @@ describe('ProfileHeader', () => {
     jest.mocked(removeMyPhoto).mockImplementation(async () => {
       serverNowHas(null);
     });
-    await renderWithQueryClient(<ProfileHeader name="Sully" roles="" />);
+    await renderWithQueryClient(<ProfileHeader name="Sully" roles="" onEditName={jest.fn()} />);
     expect(screen.queryByRole('button', { name: 'Remove photo' })).toBeNull();
 
     await fireEvent.press(await screen.findByRole('button', { name: 'Edit profile photo' }));
@@ -104,7 +114,7 @@ describe('ProfileHeader', () => {
     jest.mocked(showActionSheet).mockResolvedValueOnce('change').mockResolvedValueOnce('library');
     picker.chooseProfilePhoto.mockResolvedValue(picked);
     jest.mocked(setMyPhoto).mockResolvedValue('trip-1/sully/new.jpg');
-    await renderWithQueryClient(<ProfileHeader name="Sully" roles="" />);
+    await renderWithQueryClient(<ProfileHeader name="Sully" roles="" onEditName={jest.fn()} />);
 
     await fireEvent.press(await screen.findByRole('button', { name: 'Edit profile photo' }));
 

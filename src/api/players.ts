@@ -1,4 +1,4 @@
-import { unwrap } from '@/api/request';
+import { callFunction, unwrap } from '@/api/request';
 import { supabase } from '@/api/supabase-client';
 
 export type Player = {
@@ -18,3 +18,7 @@ export async function getPlayers(tripId: string) {
       .order('position'),
   );
 }
+
+// Renames the player this phone is in the trip. Returns the name as the database stored it.
+export const renameMe = (tripId: string, name: string) =>
+  callFunction<string>('rename_me', { p_trip_id: tripId, p_name: name });

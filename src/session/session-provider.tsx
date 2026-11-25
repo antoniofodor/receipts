@@ -12,7 +12,11 @@ type SessionContextValue = {
   startupError: string | null;
   retryStartup: () => void;
   reloadMembership: () => Promise<void>;
+  // Shows this phone's player under a new name straight away, and opens with it next time.
+  setMyName: (name: string) => Promise<void>;
   leave: () => Promise<void>;
+  // After this phone signs in or out of an account: start over as whoever it is now.
+  startOverAfterSignInChange: () => Promise<void>;
 };
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -70,6 +74,20 @@ export function SessionProvider({ children }: PropsWithChildren) {
     setMembership(await fetchMembership());
   }
 
+  async function setMyName(name: string) {
+    if (!membership) return;
+    const renamed = { ...membership, player_name: name };
+    setMembership(renamed);
+    await saveMembership(renamed);
+  }
+
+  // The new sign-in may be in a different trip, or none: nothing cached for the old one may show.
+  async function startOverAfterSignInChange() {
+    queryClient.clear();
+    const fresh = await fetchMembership();
+    setMembership(fresh);
+  }
+
   async function leave() {
     await leaveTrip();
     await saveMembership(null);
@@ -85,7 +103,9 @@ export function SessionProvider({ children }: PropsWithChildren) {
         startupError,
         retryStartup: () => setStartupAttempt((attempt) => attempt + 1),
         reloadMembership,
+        setMyName,
         leave,
+        startOverAfterSignInChange,
       }}>
       {children}
     </SessionContext>

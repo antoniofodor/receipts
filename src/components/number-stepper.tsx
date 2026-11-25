@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/pressable-scale';
 import { PumpDisplay } from '@/components/receipt/pump-display';
-import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
+import { Fonts, Paper, Radius, Spacing } from '@/constants/theme';
 
 type NumberStepperProps = {
   value: number;
@@ -12,11 +12,10 @@ type NumberStepperProps = {
   onChange: (value: number) => void;
   label: string;
   unit?: string;
-  format?: (value: number) => string;
 };
 
 // The value sits on a pump display and rolls the way it moved.
-export function NumberStepper({ value, min, max, onChange, label, unit, format = String }: NumberStepperProps) {
+export function NumberStepper({ value, min, max, onChange, label, unit }: NumberStepperProps) {
   const [direction, setDirection] = useState(0);
 
   function step(by: number) {
@@ -25,9 +24,11 @@ export function NumberStepper({ value, min, max, onChange, label, unit, format =
   }
 
   return (
-    <View style={styles.row} accessibilityLabel={`${label}: ${format(value)}`}>
+    <View style={styles.row}>
       <StepButton symbol={'−'} label={`Decrease ${label}`} disabled={value <= min} onPress={() => step(-1)} />
-      <PumpDisplay label={label} unit={unit} value={format(value)} negative={value < 0} direction={direction} />
+      <View style={styles.display}>
+        <PumpDisplay cells={[{ label, unit, value, direction }]} />
+      </View>
       <StepButton symbol="+" label={`Increase ${label}`} disabled={value >= max} onPress={() => step(1)} />
     </View>
   );
@@ -60,16 +61,16 @@ function StepButton({
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  display: { flex: 1 },
   button: {
-    width: 50,
-    height: 50,
-    borderRadius: Radius.md,
-    borderWidth: 1.5,
-    borderColor: Colors.ink,
-    backgroundColor: Colors.card,
+    width: 44,
+    height: 44,
+    borderRadius: Radius.sm,
+    borderWidth: 2,
+    borderColor: Paper.ink,
     alignItems: 'center',
     justifyContent: 'center',
   },
   disabled: { opacity: 0.3 },
-  symbol: { fontFamily: Fonts.bold, fontSize: 22, color: Colors.ink },
+  symbol: { fontFamily: Fonts.bold, fontSize: 22, color: Paper.ink },
 });

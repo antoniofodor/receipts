@@ -8,6 +8,8 @@ const rule = (title: string, points = -5): Rule => ({
   is_preset: true,
   created_by: null,
   created_at: '2026-10-30T00:00:00Z',
+  pack_id: null,
+  custom_pack_id: null,
 });
 
 const rules = [

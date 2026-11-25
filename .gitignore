@@ -44,3 +44,7 @@ example
 
 # secrets (database password, keys)
 .env
+
+# personal working files
+/Game rules.docx
+/point system.xlsx

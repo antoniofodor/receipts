@@ -40,6 +40,16 @@ describe('codebase conventions (see CLAUDE.md)', () => {
     expect(offenders.map(relative)).toEqual([]);
   });
 
+  it('nothing is turned by less than 2°, which iOS draws with stair-stepped edges', () => {
+    const offenders = appFiles.filter((file) =>
+      [...read(file).matchAll(/['"`](-?\d+(?:\.\d+)?)deg['"`]/g)].some(([, degrees]) => {
+        const turn = Math.abs(Number(degrees));
+        return turn > 0 && turn < 2;
+      }),
+    );
+    expect(offenders.map(relative)).toEqual([]);
+  });
+
   it('text weights come from the font family, never fontWeight, which custom fonts ignore or fake', () => {
     const offenders = appFiles.filter((file) => /fontWeight\s*:/.test(read(file)));
     expect(offenders.map(relative)).toEqual([]);
@@ -56,6 +66,18 @@ describe('codebase conventions (see CLAUDE.md)', () => {
     const offenders = appFiles.filter(
       (file) => relative(file) !== 'components/text-fields.tsx' && /<TextInput\b/.test(read(file)),
     );
+    expect(offenders.map(relative)).toEqual([]);
+  });
+
+  it('swipes go through SwipeableRow, and every swipeable row offers its actions to screen readers too', () => {
+    const offenders = appFiles.filter((file) => {
+      if (relative(file) === 'components/swipeable-row.tsx') return false;
+      const source = read(file);
+      return (
+        /ReanimatedSwipeable/.test(source) ||
+        (/<SwipeableRow/.test(source) && !/screenReaderSwipeActions\(/.test(source))
+      );
+    });
     expect(offenders.map(relative)).toEqual([]);
   });
 

@@ -46,7 +46,7 @@ describe('Board screen', () => {
   it('prints the night as one receipt: the trip and a line per player, with no combined total', async () => {
     await renderWithQueryClient(<BoardScreen />);
 
-    expect(await screen.findByText('Trip #TZWYKV · Lisbon')).toBeTruthy();
+    expect(await screen.findByText('Standings · Lisbon')).toBeTruthy();
     const tommo = screen.getByRole('button', { name: "See Tommo's entries" });
     expect(within(tommo).getByText('02')).toBeTruthy();
     expect(within(tommo).getByText('+20')).toBeTruthy();
@@ -61,8 +61,17 @@ describe('Board screen', () => {
     jest.mocked(getLeaderboard).mockResolvedValue([row('tommo', 20, 1), row('sully', 15, 2)]);
     await renderWithQueryClient(<BoardScreen />);
 
-    expect(await screen.findByText('You · #2')).toBeTruthy();
-    await waitFor(() => expect(screen.getAllByText('+15')).toHaveLength(2));
+    expect(await screen.findByText('You · #2 · pts')).toBeTruthy();
+    await waitFor(() => expect(screen.getByLabelText('You · #2 · pts: 15')).toBeTruthy());
+    expect(screen.getByText('+15')).toBeTruthy();
+  });
+
+  it('puts the top three on the price sign, out of the way of screen readers', async () => {
+    await renderWithQueryClient(<BoardScreen />);
+
+    await screen.findByText('Standings · Lisbon');
+    expect(screen.queryByTestId('price-sign')).toBeNull();
+    expect(screen.getByTestId('price-sign', { includeHiddenElements: true })).toBeTruthy();
   });
 
   it('opens a player from their line', async () => {

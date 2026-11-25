@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { Keyboard } from 'react-native';
+import { Keyboard, StyleSheet } from 'react-native';
 
 import { PinField, TripCodeField } from '@/components/text-fields';
 
@@ -31,6 +31,16 @@ describe('PinField', () => {
 
     expect(dismiss).not.toHaveBeenCalled();
   });
+
+  it('draws a box per digit, with dots when the PIN is hidden', async () => {
+    await render(<PinField value="12" onChangeText={() => {}} hidden accessibilityLabel="PIN" />);
+
+    const input = screen.getByLabelText('PIN');
+    expect(StyleSheet.flatten(input.props.style).color).toBe('transparent');
+    expect(
+      screen.getAllByTestId('digit-box', { includeHiddenElements: true }).map((box) => box.props.children),
+    ).toEqual(['•', '•', '', '']);
+  });
 });
 
 describe('TripCodeField', () => {
@@ -41,6 +51,16 @@ describe('TripCodeField', () => {
     await fireEvent.changeText(screen.getByLabelText('Trip code'), 'tz-wy 7kvq');
 
     expect(onChangeText).toHaveBeenCalledWith('TZWYKV');
+  });
+
+  it("never shows the phone's own typing, only the cleaned code, so lowercase letters can't flash up", async () => {
+    await render(<TripCodeField value="TZW" onChangeText={() => {}} onSubmit={() => {}} />);
+    const input = screen.getByLabelText('Trip code');
+
+    expect(StyleSheet.flatten(input.props.style).color).toBe('transparent');
+    expect(input.props.caretHidden).toBe(true);
+    expect(screen.getByTestId('trip-code-lit', { includeHiddenElements: true })).toHaveTextContent('TZW');
+    expect(screen.getByTestId('trip-code-unlit', { includeHiddenElements: true })).toHaveTextContent('---');
   });
 
   it('only submits a complete code', async () => {

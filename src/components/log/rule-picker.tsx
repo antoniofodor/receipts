@@ -1,14 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { Rule } from '@/api/rules';
-import { Card } from '@/components/card';
 import { PressableScale } from '@/components/pressable-scale';
+import { DashedRule } from '@/components/receipt/dashed-rule';
 import { LineItem } from '@/components/receipt/line-item';
 import { TextField } from '@/components/text-fields';
 import { MutedText } from '@/components/typography';
 import { RULE_TITLE_MAX_LENGTH } from '@/constants/game-rules';
 import { sharedStyles } from '@/constants/styles';
-import { Colors, Fonts, Spacing } from '@/constants/theme';
+import { Fonts, Paper, Spacing } from '@/constants/theme';
 import { formatPoints, pluralize, pointsColor } from '@/utils/format';
 import type { RuleKind } from '@/utils/points';
 import { canCreateRuleNamed, normaliseRuleTitle, rulesOfKind, searchRules } from '@/utils/rule-search';
@@ -47,15 +47,16 @@ export function RulePicker({ rules, kind, query, onChangeQuery, onPickRule, onCr
         accessibilityLabel="Search rules"
       />
       {results.length > 0 || canCreate ? (
-        <Card flush style={styles.list}>
-          {results.map((rule) => (
+        <View>
+          {results.map((rule, index) => (
             <PressableScale
               key={rule.id}
               accessibilityRole="button"
               accessibilityLabel={`${rule.title}, ${formatPoints(rule.points)}`}
               onPress={() => onPickRule(rule)}
               pressedScale={0.98}
-              style={styles.row}>
+              style={[styles.row, index > 0 && styles.ruled]}>
+              {index > 0 ? <DashedRule /> : null}
               <LineItem
                 label={rule.title}
                 value={
@@ -72,13 +73,12 @@ export function RulePicker({ rules, kind, query, onChangeQuery, onPickRule, onCr
               accessibilityLabel={`Create rule ${newTitle}`}
               onPress={() => onCreateRule(newTitle)}
               pressedScale={0.98}
-              style={styles.row}>
-              <Text style={styles.createText}>
-                + Create {kind} &ldquo;{newTitle}&rdquo;
-              </Text>
+              style={[styles.row, results.length > 0 && styles.ruled]}>
+              {results.length > 0 ? <DashedRule /> : null}
+              <Text style={styles.createText}>+ New rule &ldquo;{newTitle}&rdquo;</Text>
             </PressableScale>
           ) : null}
-        </Card>
+        </View>
       ) : null}
       {otherKindMatches > 0 ? (
         <MutedText>
@@ -90,7 +90,7 @@ export function RulePicker({ rules, kind, query, onChangeQuery, onPickRule, onCr
 }
 
 const styles = StyleSheet.create({
-  list: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.xs },
-  row: { paddingVertical: Spacing.md - 1 },
-  createText: { fontFamily: Fonts.bold, fontSize: 13, textTransform: 'uppercase', color: Colors.red },
+  row: { minHeight: 44, justifyContent: 'center', paddingVertical: Spacing.sm },
+  ruled: { gap: Spacing.sm, paddingTop: 0 },
+  createText: { fontFamily: Fonts.bold, fontSize: 13, textTransform: 'uppercase', color: Paper.red },
 });

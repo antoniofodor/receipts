@@ -1,6 +1,8 @@
-import { Card } from '@/components/card';
+import { View } from 'react-native';
+
 import { NumberStepper } from '@/components/number-stepper';
 import { Label } from '@/components/typography';
+import { sharedStyles } from '@/constants/styles';
 
 export const DEFAULT_VOTE_THRESHOLD = 3;
 
@@ -9,18 +11,18 @@ export function maxVoteThreshold(playerCount: number) {
   return Math.max(1, playerCount - 2);
 }
 
-type VoteThresholdCardProps = {
+type VoteThresholdFieldProps = {
   value: number;
   playerCount: number;
   onChange: (value: number) => void;
 };
 
-export function VoteThresholdCard({ value, playerCount, onChange }: VoteThresholdCardProps) {
+export function VoteThresholdField({ value, playerCount, onChange }: VoteThresholdFieldProps) {
   const max = maxVoteThreshold(playerCount);
   return (
-    <Card>
+    <View style={sharedStyles.stack}>
       <Label>Approvals needed</Label>
       <NumberStepper value={value} min={1} max={max} onChange={onChange} label="votes needed" />
-    </Card>
+    </View>
   );
 }

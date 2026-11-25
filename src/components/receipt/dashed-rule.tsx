@@ -1,11 +1,11 @@
 import Svg, { Line } from 'react-native-svg';
 
-import { Colors } from '@/constants/theme';
+import { Paper } from '@/constants/theme';
 
 const THICKNESS = 1.5;
 
 // Drawn rather than a dashed border: iOS won't dash a border on one side only.
-export function DashedRule({ color = Colors.line }: { color?: string }) {
+export function DashedRule({ color = Paper.rule }: { color?: string }) {
   return (
     <Svg width="100%" height={THICKNESS} accessible={false}>
       <Line

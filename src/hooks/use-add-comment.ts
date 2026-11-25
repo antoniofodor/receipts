@@ -3,7 +3,7 @@ import { randomUUID } from 'expo-crypto';
 import { addComment, type Comment } from '@/api/comments';
 import type { Entry } from '@/api/entries';
 import { entryListQueries, tripQueries } from '@/api/trip-queries';
-import { Colors } from '@/constants/theme';
+import { Paper } from '@/constants/theme';
 import { useInvalidateTripQueries, useOptimisticTripUpdate, useTripQuery } from '@/hooks/use-trip-query';
 import { useMembership } from '@/session/session-provider';
 
@@ -24,7 +24,7 @@ export function useAddComment(entryId: string) {
       author: {
         id: membership.player_id,
         name: membership.player_name,
-        color: me?.color ?? Colors.muted,
+        color: me?.color ?? Paper.muted,
         photo_path: me?.photo_path ?? null,
       },
       sending: true,

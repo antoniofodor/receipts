@@ -1,17 +1,8 @@
 import { removeMyPhoto, setMyPhoto } from '@/api/avatars';
 import type { LocalPhoto } from '@/api/photos';
-import { entryListQueries, tripQueries } from '@/api/trip-queries';
+import { queriesShowingPlayers, tripQueries } from '@/api/trip-queries';
 import { useInvalidateTripQueries, useOptimisticTripUpdate, useTripQuery } from '@/hooks/use-trip-query';
 import { useMembership } from '@/session/session-provider';
-
-// Avatars appear on cards, the board and in comments, so every list that shows players is refreshed.
-const QUERIES_SHOWING_AVATARS = [
-  tripQueries.players,
-  tripQueries.leaderboard,
-  tripQueries.entry,
-  tripQueries.comments,
-  ...entryListQueries,
-];
 
 export function useProfilePhoto() {
   const { trip_id: tripId, player_id: myPlayerId } = useMembership();
@@ -24,7 +15,7 @@ export function useProfilePhoto() {
     await updateOptimistically(tripQueries.players, (list) =>
       list.map((player) => (player.id === myPlayerId ? { ...player, photo_path: photoPath } : player)),
     );
-    invalidate(QUERIES_SHOWING_AVATARS);
+    invalidate(queriesShowingPlayers);
   }
 
   return {

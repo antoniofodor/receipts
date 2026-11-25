@@ -3,7 +3,6 @@ import { View } from 'react-native';
 import { NumberStepper } from '@/components/number-stepper';
 import { SegmentedControl } from '@/components/segmented-control';
 import { sharedStyles } from '@/constants/styles';
-import { formatPoints } from '@/utils/format';
 import { rulePointsRange, signedPoints, type RuleKind } from '@/utils/points';
 
 // Steps along the number line like the entry points stepper: + on a penalty goes from −5 to −4.
@@ -38,7 +37,6 @@ export function RulePointsFields({ kind, magnitude, onChangeKind, onChangeMagnit
         max={range.max}
         onChange={(points) => onChangeMagnitude(Math.abs(points))}
         label="rule points"
-        format={formatPoints}
       />
     </View>
   );
